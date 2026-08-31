@@ -24,14 +24,99 @@ h1 {
   margin-bottom: 0.25rem;
 }
 
+h2 {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+  margin: 0 0 0.75rem;
+}
+
 .tagline {
   margin: 0 0 1.5rem;
   opacity: 0.8;
 }
 
-.phase-note {
+.card {
   border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.muted {
+  opacity: 0.65;
+  font-size: 0.875rem;
+}
+
+.tool-list,
+.log-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tool {
+  margin-bottom: 0.5rem;
+}
+
+.tool-name {
+  font-family: ui-monospace, monospace;
+  font-weight: 600;
+}
+
+.tool-status {
+  font-size: 0.75rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+
+.tool-registered .tool-status {
+  color: light-dark(#1a7f37, #4ec9b0);
+}
+
+.tool-unavailable .tool-status,
+.tool-error .tool-status {
+  color: light-dark(#b35900, #d19a66);
+}
+
+.tool-detail {
+  font-size: 0.8rem;
+  opacity: 0.75;
+  margin: 0.25rem 0 0;
+}
+
+.log-entry {
+  border-top: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+}
+
+.log-tool {
+  font-family: ui-monospace, monospace;
+  font-weight: 600;
+}
+
+.log-time {
+  opacity: 0.6;
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+}
+
+.log-entry pre {
+  margin: 0.35rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.35rem;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  font-size: 0.8rem;
+  overflow-x: auto;
+}
+
+.phase-note {
+  border: 1px dashed color-mix(in srgb, currentColor 30%, transparent);
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
   opacity: 0.75;
+  font-size: 0.875rem;
 }
