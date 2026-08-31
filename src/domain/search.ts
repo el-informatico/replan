@@ -8,8 +8,8 @@
 import type { Flight, FlightSegment } from './flights.ts'
 
 export interface SearchFilters {
-  /** Airport code — the only required filter at the tool boundary. */
-  destination?: string
+  /** Airport code, or a list of codes (any-of) — required at the T1 tool boundary. */
+  destination?: string | readonly string[]
   /** ISO-with-offset; flights arriving at or before this instant pass. */
   arriveBefore?: string
   maxPriceUsd?: number
@@ -92,8 +92,12 @@ export function searchFlights(
   filters: SearchFilters,
 ): FlightSummary[] {
   const pass = (f: Flight): boolean => {
-    if (filters.destination !== undefined && f.destination.code !== filters.destination) {
-      return false
+    if (filters.destination !== undefined) {
+      const allowed =
+        typeof filters.destination === 'string'
+          ? [filters.destination]
+          : filters.destination
+      if (!allowed.includes(f.destination.code)) return false
     }
     if (
       filters.arriveBefore !== undefined &&
