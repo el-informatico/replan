@@ -79,7 +79,7 @@ export interface FlightDataset {
 }
 
 /** ISO 8601 with mandatory explicit offset, e.g. 2026-09-12T08:10:00-05:00 */
-const ISO_WITH_OFFSET =
+export const ISO_WITH_OFFSET =
   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2}|Z)$/
 
 const CABINS: readonly string[] = ['economy', 'premium_economy', 'business']

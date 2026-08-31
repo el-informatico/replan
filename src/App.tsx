@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { registerPing } from './tools/ping.ts'
+import { registerSearchFlights } from './tools/search.ts'
 import {
   subscribeToolLog,
   type ToolLogEntry,
@@ -14,11 +15,10 @@ export default function App() {
   const [log, setLog] = useState<ToolLogEntry[]>([])
 
   useEffect(() => {
-    // Tools die with the document — register on every load. Phase 0 registers
-    // exactly one smoke tool; Phase 1 adds the flight/hotel/etc. tools here.
+    // Tools die with the document — register on every load.
     let cancelled = false
-    registerPing().then((status) => {
-      if (!cancelled) setStatuses([status])
+    Promise.all([registerPing(), registerSearchFlights()]).then((all) => {
+      if (!cancelled) setStatuses(all)
     })
     const unsubscribe = subscribeToolLog((entry) => {
       setLog((prev) => [entry, ...prev].slice(0, MAX_LOG))
