@@ -49,3 +49,53 @@ Notes:
   protection); judges must be given the public alias.
 - Node 22.22.2 / npm 12.0.2 / Vercel CLI 59.10.0; token auth via
   `~/.vercel-token` (0600) — never committed, never printed.
+
+---
+
+## Phase 1: Core flight tools — VERIFIED
+Date: 2026-08-31
+Commits: 9f0f125 (plan+contracts+ADR-0004) → 1c015e7 (T1) → aa2dfa8 (T2)
+→ 666e6cc (T3) → d1fbe3b (T4) → 4fd5c7e (authoring pass) → 0c75c33 (UI)
+→ d0d9ab2 (review fixes + functional eval). Independent review: 8 confirmed
+findings (1 major), all fixed with regression tests in d0d9ab2.
+
+Per-tool evidence:
+
+- **T1 search_flights** (1c015e7, amended 4fd5c7e/d0d9ab2): verify.sh exit 0;
+  unit green. Filters validated (destination enum+execute, ISO-with-offset
+  incl. real-calendar rejection, >0 / ≥0 bounds); price-asc ordering;
+  empty result valid ({ok:true,count:0}); compact payload ≤1.5K
+  (test-enforced); readOnlyHint false (writes lastSearch — plan §6
+  amendment); registered + logged; store lastSearch + subscriber notify.
+- **T2 hold_reservation** (aa2dfa8): verify.sh exit 0; exact +15min expiry at
+  injected clock (12:00→12:15Z); unknown-id error with examples+count;
+  double-hold error carrying active expiry; hold-after-expiry via clock+16;
+  concurrent distinct holds OK; TTL/note state the simulation explicitly.
+  State: in-memory store (ADR-0004) — in-memory vs localStorage vs React
+  state decided and justified there.
+- **T3 update_constraints** (666e6cc, fixes d0d9ab2): verify.sh exit 0;
+  seeded-from-scenario equality; one-key merge leaves others intact; {}
+  re-runs unchanged; merged re-search spans MIA+FLL (max_price=300 test
+  asserts both airports present, all rows ≤300); preferred_time reorders by
+  monotone departure-closeness; null clears (restores price order);
+  lastSearch via=update_constraints; subscriber notified.
+- **T4 confirm_booking** (d1fbe3b, fix d0d9ab2): verify.sh exit 0; no-hold
+  → NO_ACTIVE_HOLD pointing at hold_reservation; expired → HOLD_EXPIRED with
+  lapse instant; deterministic ref RPLN-FL009-style; itinerary with segments;
+  idempotent re-confirm returns byte-identical ref/confirmed_at +
+  idempotent:true, booking count 1 — INCLUDING the confirm→re-hold→confirm
+  cycle (stray hold now consumed); second distinct flight bookable.
+
+Cross-cutting:
+- Authoring brief applied + mechanically enforced (budgets.test.ts): ≤500
+  description, ≤150 param, ≤1.5K output, unique spec-charset names.
+- UI live-reactive via store subscription: itinerary card, constraints
+  panel, holds w/ countdown, results w/ held/booked badges, tool log.
+- Live smoke (headless-session variant): verify.sh --url
+  https://replan-phi.vercel.app → exit 0 (HTTP 200, app shell); served
+  bundle assets/index-QbwDFBTM.js contains name:`ping` ×1,
+  `search_flights` ×1, `hold_reservation` ×1, `update_constraints` ×1,
+  `confirm_booking` ×1; T1+T3 narrative executed against the real tool
+  modules in evals/functional/rebooking-narrative.test.ts (3 tests green).
+  In-app-browser confirmation remains the human item (current.md).
+- No AI-attribution trailers in pushed history (re-verified post-push).

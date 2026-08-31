@@ -39,3 +39,26 @@ Cost: one iteration; no wrong result reported.
    registerTool(pingTool) }`) — rerun all legs PASS.
 Cost: one iteration (the verify gate caught it before commit — working as
 designed). Regression value: none beyond "let inference carry promise types."
+
+## F004 — Calendar-rollover test over-asserted the error message
+1. Root cause: the new test asserted the "calendar" message for month-13
+   input, but Date.parse returns NaN there — rejected by the EARLIER
+   format/NaN check with a different (still correct) message. Asserting
+   specific message text for inputs that can fail at multiple validation
+   layers is brittle.
+   Evidence: p1c8 first verify run — 1 test failed; vitest output quoted the
+   actual message.
+2. Fix: scope the message assertion to true rollover inputs (Feb 30, Sep 31,
+   hour 24); month-13 asserts ok:false only. Rerun green.
+Cost: one verify iteration; no wrong result reported (fail-fast worked).
+
+## F005 — (process) Reviewer found the cycle the test list named but no test covered
+1. Root cause: T4's VERIFICATION list names "confirm after
+   confirm-then-hold-again cycle" — the implementation failed exactly there
+   (stray hold), and no test existed because the naming lived only in the
+   plan, not as a test.
+   Evidence: reviewer finding 1 (repro'd); fixed + tested in d0d9ab2.
+2. Lesson promoted to lessons.md (L004): every cycle a contract's
+   verification list names gets a test in the SAME increment that ships the
+   code, not "later".
+Cost: one post-review fix iteration inside p1c8; caught before deploy.
