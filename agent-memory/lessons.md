@@ -42,3 +42,29 @@ networking — token files beat browser flows here.
 - Give the user scripts to run, not multi-line pastes, for anything touching
   secrets or history.
 - Auth in this environment: `--token "$(cat ~/.vercel-token)"`.
+
+## L003 — Parse and boundary honesty: V8 rolls, Math.round rounds
+**Date:** 2026-08-31
+**Where:** reviewer findings 3+4 (Phase 1).
+Two silent-correctness traps in input handling: (a) `Date.parse` accepts
+impossible datetimes by rolling them forward (2026-02-30 → Mar 2) instead of
+returning NaN — regex + NaN checks do NOT catch them; validate calendar
+semantics (day ≤ days-in-month via `new Date(Date.UTC(y, m, 0))`, hour ≤ 23).
+(b) `Math.round(bound * 60)` on user-supplied bounds admits values over the
+requested cap (4.7499h → 285min passed a 284.994min cap). Compare against the
+exact product.
+**How to apply:** every numeric bound compares exact; every datetime input
+gets semantic validation (see getIsoDatetime); add regression tests at the
+boundary (just-under / exactly-at).
+
+## L004 — A named cycle in a contract's verification list IS a test spec
+**Date:** 2026-08-31
+**Where:** reviewer finding 1 / failures F005.
+The plan named "confirm after confirm-then-hold-again cycle" under T4
+VERIFICATION; no test existed; the reviewer found the implementation broken
+on precisely that cycle. Contract verification lists are executable
+specifications — each named cycle gets a test in the same increment that
+ships the feature.
+**How to apply:** when writing a tool against a contract, walk the
+VERIFICATION section line-by-line and map each line to a concrete test
+before claiming done.
