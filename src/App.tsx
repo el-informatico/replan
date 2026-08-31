@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import { registerConfirmBooking } from './tools/confirm.ts'
 import { registerUpdateConstraints } from './tools/constraints.ts'
 import { registerHoldReservation } from './tools/hold.ts'
 import { registerPing } from './tools/ping.ts'
@@ -24,6 +25,7 @@ export default function App() {
       registerSearchFlights(),
       registerHoldReservation(),
       registerUpdateConstraints(),
+      registerConfirmBooking(),
     ]).then((all) => {
       if (!cancelled) setStatuses(all)
     })

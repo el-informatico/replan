@@ -65,6 +65,8 @@ function initialConstraints(): Constraints {
 
 const holds = new Map<string, Hold>()
 const bookings = new Map<string, Booking>()
+/** flightId → expiry instant of the last hold that lapsed for it. */
+const expiredHolds = new Map<string, number>()
 let constraints: Constraints = initialConstraints()
 let lastSearch: LastSearch | null = null
 
@@ -101,10 +103,16 @@ function sweepExpiredHolds(): void {
   for (const [id, h] of holds) {
     if (h.expiresAt <= t) {
       holds.delete(id)
+      expiredHolds.set(id, h.expiresAt)
       changed = true
     }
   }
   if (changed) notify()
+}
+
+/** When the traveler's last hold on this flight lapsed, if ever. */
+export function getExpiredHoldAt(flightId: string): number | null {
+  return expiredHolds.get(flightId) ?? null
 }
 
 export function getSnapshot(): StoreSnapshot {
@@ -173,6 +181,7 @@ export function setLastSearch(search: LastSearch): void {
 export function resetForTests(): void {
   holds.clear()
   bookings.clear()
+  expiredHolds.clear()
   constraints = initialConstraints()
   lastSearch = null
   nowFn = () => Date.now()
