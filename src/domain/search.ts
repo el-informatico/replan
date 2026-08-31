@@ -110,7 +110,7 @@ export function searchFlights(
     }
     if (
       filters.maxLayoverHours !== undefined &&
-      f.total_layover_minutes > Math.round(filters.maxLayoverHours * 60)
+      f.total_layover_minutes > filters.maxLayoverHours * 60
     ) {
       return false
     }

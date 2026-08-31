@@ -82,9 +82,12 @@ async function executeConfirm(
     }
   }
 
-  // Idempotency first: an existing booking always wins.
+  // Idempotency first: an existing booking always wins. But a hold re-created
+  // AFTER the booking (reviewer finding 1) must still be consumed — otherwise
+  // the UI shows "confirmed" and "held" simultaneously for up to 15 minutes.
   const existing = getBooking(id.value)
   if (existing) {
+    if (getActiveHold(id.value)) consumeHold(id.value)
     return { ...existing.itinerary, idempotent: true }
   }
 

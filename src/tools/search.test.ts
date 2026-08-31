@@ -17,10 +17,10 @@ describe('search_flights tool — happy path', () => {
     })
     expect(r['ok']).toBe(true)
     expect(r['count']).toBe(20)
-    expect(r['showing']).toBe(10)
-    expect(r['note'] as string).toContain('Showing 10 of 20')
+    expect(r['showing']).toBe(8)
+    expect(r['note'] as string).toContain('Showing 8 of 20')
     const results = r['results'] as { price_usd: number; departs: string; arrives: string }[]
-    expect(results).toHaveLength(10)
+    expect(results).toHaveLength(8)
     const prices = results.map((x) => x.price_usd)
     expect([...prices].sort((a, b) => a - b)).toEqual(prices)
     for (const row of results) {
@@ -107,6 +107,35 @@ describe('search_flights tool — malformed input (errors as data)', () => {
     )
     expect(r['ok']).toBe(false)
     expect(r['error'] as string).toContain('offset')
+  })
+
+  it('rejects impossible calendar datetimes instead of rolling them forward (reviewer finding 4)', async () => {
+    // V8 rolls these forward silently (Feb 30 → Mar 2, Sep 31 → Oct 1,
+    // 24:00 → next day) — they must hit the calendar check.
+    for (const bad of [
+      '2026-02-30T10:00:00Z',
+      '2026-09-31T10:00:00-04:00',
+      '2026-09-13T24:00:00-05:00',
+    ]) {
+      const r = await searchFlightsTool.execute(
+        { destination: 'MIA', arrive_before: bad },
+        { signal: new AbortController().signal },
+      )
+      expect(r['ok'], bad).toBe(false)
+      expect(r['error'] as string).toContain('calendar')
+    }
+    // Month 13 is rejected earlier — Date.parse itself returns NaN.
+    const month13 = await searchFlightsTool.execute(
+      { destination: 'MIA', arrive_before: '2026-13-01T10:00:00Z' },
+      { signal: new AbortController().signal },
+    )
+    expect(month13['ok']).toBe(false)
+    // A real leap day is fine
+    const leap = await searchFlightsTool.execute(
+      { destination: 'MIA', arrive_before: '2028-02-29T10:00:00Z' },
+      { signal: new AbortController().signal },
+    )
+    expect(leap['ok']).toBe(true)
   })
 
   it('rejects a negative max_price', async () => {

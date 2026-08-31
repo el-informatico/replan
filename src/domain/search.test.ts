@@ -68,6 +68,21 @@ describe('searchFlights — filtering', () => {
     }
   })
 
+  it('layover cap is exact, not rounded (reviewer finding 3)', () => {
+    // 4.7499h = 284.994min → FL-012 (285min) must be excluded
+    const justUnder = searchFlights(flights, {
+      destination: 'MIA',
+      maxLayoverHours: 4.7499,
+    })
+    expect(justUnder.some((r) => r.id === 'FL-012')).toBe(false)
+    // 4.75h = 285min exactly → inclusive boundary keeps it
+    const exact = searchFlights(flights, {
+      destination: 'MIA',
+      maxLayoverHours: 4.75,
+    })
+    expect(exact.some((r) => r.id === 'FL-012')).toBe(true)
+  })
+
   it('omitted filters are unconstrained', () => {
     const results = searchFlights(flights, { destination: 'FLL' })
     expect(results).toHaveLength(6)

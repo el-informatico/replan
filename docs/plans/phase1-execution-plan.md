@@ -75,11 +75,14 @@ ACCEPTANCE CRITERIA:
   4. Missing optional filters = unconstrained; empty result is valid:
      {ok:true, count:0, results:[]} — never an error.
   5. Results sorted by price_usd ascending (tie-break: duration, then id);
-     each result carries id, route (origin→destination codes), airline,
-     depart/arrive ISO, stops, total_layover_minutes, price_usd, cabin,
-     seats_left, refundable, tags.
-  6. Registered via the Phase 0 registrar; annotations.readOnlyHint = true;
-     invocations logged via logToolCall.
+     DOMAIN results carry id, route, airline, depart/arrive ISO, stops,
+     total_layover_minutes, price_usd, cabin, seats_left, refundable, tags —
+     the TOOL payload carries the compact projection per the authoring
+     brief (id, airline, route, departs, arrives, price_usd), capped with a
+     showing-x-of-y note. [AMENDED 2026-08-31 post-review: see §6]
+  6. Registered via the Phase 0 registrar; invocations logged via
+     logToolCall. [AMENDED 2026-08-31 post-review: readOnlyHint is FALSE —
+     the tool writes lastSearch page state; see §6]
 VERIFICATION: unit tests — happy path (all filters, both destinations),
 unconstrained filter omission, empty-result case, malformed input for EVERY
 parameter (bad destination, bad ISO, negative price, negative layover),
@@ -207,3 +210,26 @@ DONE ONLY WHEN: all AC have passing cited evidence and verify.sh exit 0.
 - Commit rule: no AI-attribution trailers (re-verify after each push).
 - Research agent's authoring guidance lands before p1c2 and shapes
   descriptions/schemas; conflicts resolved in favor of spec + Chrome docs.
+
+## 6. Amendments (2026-08-31, post independent review)
+
+The reviewer (diff caf20d7..0c75c33) found T1's contract text internally torn
+against the authoring brief applied later in the same phase. Amendments:
+
+1. **T1 AC6**: `readOnlyHint: false` (not true). The tool mutates page state
+   (`setLastSearch` drives the results panel — which T3's UI-notification
+   contract requires of Tool 1); GoogleLabs marks their equivalent
+   searchFlights `false` for the same reason. Honest annotation wins over
+   the original plan line.
+2. **T1 AC5**: the full field list is the DOMAIN contract
+   (`store.lastSearch`, rendered by the UI); the tool payload is the compact
+   projection the authoring brief mandates (~1.5K output budget). Both are
+   test-enforced.
+
+Review fixes shipped in p1c8 (all with new regression tests): idempotent
+re-confirm now consumes a re-created hold (T4 AC4 restored on the
+confirm→re-hold→confirm cycle); layover comparison is exact (no
+Math.round admitting over-cap layovers); tool output ≤1.5K enforced by
+test (cap 8, stops folded into route, shorter note); impossible calendar
+datetimes (2026-02-30, 24:00:00) rejected instead of silently rolling
+forward; `preferred_time: null` explicitly clears the preference.

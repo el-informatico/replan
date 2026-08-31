@@ -28,7 +28,8 @@ export const updateConstraintsTool: WebMcpTool = {
     'Change the traveler’s rebooking constraints and re-search immediately — ' +
     'returns new results, not just an acknowledgment. Provide any subset: ' +
     'max_price (USD), max_layover_hours, preferred_time (ISO 8601 with UTC ' +
-    'offset; reorders results by departure closest to that time). ' +
+    'offset; reorders results by departure closest to that time; null clears ' +
+    'it back to cheapest-first). ' +
     'Unmentioned constraints persist; {} re-runs with the current set. ' +
     'Returns { ok, constraints (complete effective set), count, results }. ' +
     'The page’s constraints and results update live.',
@@ -97,6 +98,10 @@ async function executeUpdate(
   if (!preferredTime.ok) {
     return { ok: false, code: 'INVALID_INPUT', error: preferredTime.error }
   }
+  // Explicit null clears the preferred time (reviewer finding 5) — distinct
+  // from absent, which persists the prior value.
+  const clearPreferred =
+    'preferred_time' in input && input['preferred_time'] === null
 
   // Partial merge: only provided keys change; the rest persist.
   const current = getSnapshot().constraints
@@ -106,9 +111,11 @@ async function executeUpdate(
     ...(maxLayover.value !== undefined
       ? { maxLayoverHours: maxLayover.value }
       : {}),
-    ...(preferredTime.value !== undefined
-      ? { preferredTime: preferredTime.value }
-      : {}),
+    ...(clearPreferred
+      ? { preferredTime: null }
+      : preferredTime.value !== undefined
+        ? { preferredTime: preferredTime.value }
+        : {}),
   }
   setConstraints(merged)
 
