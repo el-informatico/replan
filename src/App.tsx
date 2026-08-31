@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import { registerUpdateConstraints } from './tools/constraints.ts'
 import { registerHoldReservation } from './tools/hold.ts'
 import { registerPing } from './tools/ping.ts'
 import { registerSearchFlights } from './tools/search.ts'
@@ -18,7 +19,12 @@ export default function App() {
   useEffect(() => {
     // Tools die with the document — register on every load.
     let cancelled = false
-    Promise.all([registerPing(), registerSearchFlights(), registerHoldReservation()]).then((all) => {
+    Promise.all([
+      registerPing(),
+      registerSearchFlights(),
+      registerHoldReservation(),
+      registerUpdateConstraints(),
+    ]).then((all) => {
       if (!cancelled) setStatuses(all)
     })
     const unsubscribe = subscribeToolLog((entry) => {
