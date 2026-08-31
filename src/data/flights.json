@@ -1,0 +1,588 @@
+{
+  "generated_at": "2026-08-31",
+  "note": "Synthetic dataset for the Lima→Miami cancellation-recovery scenario. Entirely fictional schedules and prices; airline codes are used as flavor only. All ISO timestamps carry explicit UTC offsets. Invariants are enforced by src/domain/flights.ts and tested in src/domain/flights.test.ts.",
+  "scenario": {
+    "name": "Lima→Miami cancellation recovery",
+    "description": "The traveler's nonstop Lima→Miami flight was cancelled by the airline on the morning of 2026-09-12. They must reach Miami (or Fort Lauderdale, reachable by ground transport) in time for a cruise departing PortMiami at 18:00 on 2026-09-13, with boarding closing at 15:00.",
+    "original_booking": {
+      "flight_number": "AA 918",
+      "route": "LIM→MIA nonstop",
+      "depart_iso": "2026-09-12T08:05:00-05:00",
+      "arrive_iso": "2026-09-12T15:05:00-04:00",
+      "status": "cancelled",
+      "refund_due_usd": 412
+    },
+    "constraints_hint": {
+      "must_arrive_by_iso": "2026-09-13T15:00:00-04:00",
+      "destination_airports": ["MIA", "FLL"],
+      "max_price_usd": 650,
+      "max_layover_hours": 4
+    }
+  },
+  "flights": [
+    {
+      "id": "FL-001",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T08:10:00-05:00",
+      "arrive_iso": "2026-09-12T15:00:00-04:00",
+      "duration_minutes": 350,
+      "stops": 0,
+      "segments": [
+        { "flight_number": "LA 2450", "airline_code": "LA", "from": "LIM", "to": "MIA", "depart_iso": "2026-09-12T08:10:00-05:00", "arrive_iso": "2026-09-12T15:00:00-04:00" }
+      ],
+      "layovers": [],
+      "total_layover_minutes": 0,
+      "price_usd": 528,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 4,
+      "refundable": false,
+      "baggage_included": true,
+      "tags": ["nonstop", "morning-departure"]
+    },
+    {
+      "id": "FL-002",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T12:40:00-05:00",
+      "arrive_iso": "2026-09-12T19:30:00-04:00",
+      "duration_minutes": 350,
+      "stops": 0,
+      "segments": [
+        { "flight_number": "AA 928", "airline_code": "AA", "from": "LIM", "to": "MIA", "depart_iso": "2026-09-12T12:40:00-05:00", "arrive_iso": "2026-09-12T19:30:00-04:00" }
+      ],
+      "layovers": [],
+      "total_layover_minutes": 0,
+      "price_usd": 612,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 2,
+      "refundable": false,
+      "baggage_included": true,
+      "tags": ["nonstop", "afternoon-departure", "last-seats"]
+    },
+    {
+      "id": "FL-003",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T23:40:00-05:00",
+      "arrive_iso": "2026-09-13T06:35:00-04:00",
+      "duration_minutes": 355,
+      "stops": 0,
+      "segments": [
+        { "flight_number": "AA 936", "airline_code": "AA", "from": "LIM", "to": "MIA", "depart_iso": "2026-09-12T23:40:00-05:00", "arrive_iso": "2026-09-13T06:35:00-04:00" }
+      ],
+      "layovers": [],
+      "total_layover_minutes": 0,
+      "price_usd": 489,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 7,
+      "refundable": false,
+      "baggage_included": true,
+      "tags": ["nonstop", "red-eye"]
+    },
+    {
+      "id": "FL-004",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-13T01:15:00-05:00",
+      "arrive_iso": "2026-09-13T08:00:00-04:00",
+      "duration_minutes": 345,
+      "stops": 0,
+      "segments": [
+        { "flight_number": "LA 2412", "airline_code": "LA", "from": "LIM", "to": "MIA", "depart_iso": "2026-09-13T01:15:00-05:00", "arrive_iso": "2026-09-13T08:00:00-04:00" }
+      ],
+      "layovers": [],
+      "total_layover_minutes": 0,
+      "price_usd": 545,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 9,
+      "refundable": false,
+      "baggage_included": true,
+      "tags": ["nonstop", "red-eye"]
+    },
+    {
+      "id": "FL-005",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-13T07:25:00-05:00",
+      "arrive_iso": "2026-09-13T14:15:00-04:00",
+      "duration_minutes": 350,
+      "stops": 0,
+      "segments": [
+        { "flight_number": "AA 930", "airline_code": "AA", "from": "LIM", "to": "MIA", "depart_iso": "2026-09-13T07:25:00-05:00", "arrive_iso": "2026-09-13T14:15:00-04:00" }
+      ],
+      "layovers": [],
+      "total_layover_minutes": 0,
+      "price_usd": 679,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 3,
+      "refundable": false,
+      "baggage_included": true,
+      "tags": ["nonstop", "morning-departure", "cutting-it-close", "last-seats"]
+    },
+    {
+      "id": "FL-006",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T16:20:00-05:00",
+      "arrive_iso": "2026-09-12T23:10:00-04:00",
+      "duration_minutes": 350,
+      "stops": 0,
+      "segments": [
+        { "flight_number": "LA 2455", "airline_code": "LA", "from": "LIM", "to": "MIA", "depart_iso": "2026-09-12T16:20:00-05:00", "arrive_iso": "2026-09-12T23:10:00-04:00" }
+      ],
+      "layovers": [],
+      "total_layover_minutes": 0,
+      "price_usd": 798,
+      "currency": "USD",
+      "cabin": "premium_economy",
+      "seats_left": 5,
+      "refundable": true,
+      "baggage_included": true,
+      "tags": ["nonstop", "evening-departure", "premium"]
+    },
+    {
+      "id": "FL-007",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T22:15:00-05:00",
+      "arrive_iso": "2026-09-13T04:55:00-04:00",
+      "duration_minutes": 340,
+      "stops": 0,
+      "segments": [
+        { "flight_number": "AA 926", "airline_code": "AA", "from": "LIM", "to": "MIA", "depart_iso": "2026-09-12T22:15:00-05:00", "arrive_iso": "2026-09-13T04:55:00-04:00" }
+      ],
+      "layovers": [],
+      "total_layover_minutes": 0,
+      "price_usd": 449,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 8,
+      "refundable": false,
+      "baggage_included": true,
+      "tags": ["nonstop", "red-eye"]
+    },
+    {
+      "id": "FL-008",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T10:05:00-05:00",
+      "arrive_iso": "2026-09-12T17:00:00-04:00",
+      "duration_minutes": 355,
+      "stops": 0,
+      "segments": [
+        { "flight_number": "LA 2460", "airline_code": "LA", "from": "LIM", "to": "MIA", "depart_iso": "2026-09-12T10:05:00-05:00", "arrive_iso": "2026-09-12T17:00:00-04:00" }
+      ],
+      "layovers": [],
+      "total_layover_minutes": 0,
+      "price_usd": 942,
+      "currency": "USD",
+      "cabin": "business",
+      "seats_left": 6,
+      "refundable": true,
+      "baggage_included": true,
+      "tags": ["nonstop", "morning-departure", "business"]
+    },
+    {
+      "id": "FL-009",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T05:30:00-05:00",
+      "arrive_iso": "2026-09-12T15:20:00-04:00",
+      "duration_minutes": 530,
+      "stops": 1,
+      "segments": [
+        { "flight_number": "AV 828", "airline_code": "AV", "from": "LIM", "to": "BOG", "depart_iso": "2026-09-12T05:30:00-05:00", "arrive_iso": "2026-09-12T09:10:00-05:00" },
+        { "flight_number": "AV 32", "airline_code": "AV", "from": "BOG", "to": "MIA", "depart_iso": "2026-09-12T11:05:00-05:00", "arrive_iso": "2026-09-12T15:20:00-04:00" }
+      ],
+      "layovers": [{ "airport": "BOG", "minutes": 115 }],
+      "total_layover_minutes": 115,
+      "price_usd": 387,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 9,
+      "refundable": false,
+      "baggage_included": true,
+      "tags": ["one-stop", "morning-departure"]
+    },
+    {
+      "id": "FL-010",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T06:15:00-05:00",
+      "arrive_iso": "2026-09-12T16:40:00-04:00",
+      "duration_minutes": 565,
+      "stops": 1,
+      "segments": [
+        { "flight_number": "CM 802", "airline_code": "CM", "from": "LIM", "to": "PTY", "depart_iso": "2026-09-12T06:15:00-05:00", "arrive_iso": "2026-09-12T10:25:00-05:00" },
+        { "flight_number": "CM 345", "airline_code": "CM", "from": "PTY", "to": "MIA", "depart_iso": "2026-09-12T12:15:00-05:00", "arrive_iso": "2026-09-12T16:40:00-04:00" }
+      ],
+      "layovers": [{ "airport": "PTY", "minutes": 110 }],
+      "total_layover_minutes": 110,
+      "price_usd": 329,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 7,
+      "refundable": false,
+      "baggage_included": true,
+      "tags": ["one-stop", "morning-departure"]
+    },
+    {
+      "id": "FL-011",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T14:40:00-05:00",
+      "arrive_iso": "2026-09-13T04:25:00-04:00",
+      "duration_minutes": 765,
+      "stops": 1,
+      "segments": [
+        { "flight_number": "CM 804", "airline_code": "CM", "from": "LIM", "to": "PTY", "depart_iso": "2026-09-12T14:40:00-05:00", "arrive_iso": "2026-09-12T18:50:00-05:00" },
+        { "flight_number": "CM 349", "airline_code": "CM", "from": "PTY", "to": "MIA", "depart_iso": "2026-09-13T00:00:00-05:00", "arrive_iso": "2026-09-13T04:25:00-04:00" }
+      ],
+      "layovers": [{ "airport": "PTY", "minutes": 310 }],
+      "total_layover_minutes": 310,
+      "price_usd": 248,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 9,
+      "refundable": false,
+      "baggage_included": false,
+      "tags": ["one-stop", "afternoon-departure", "long-layover", "red-eye", "budget"]
+    },
+    {
+      "id": "FL-012",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T21:50:00-05:00",
+      "arrive_iso": "2026-09-13T10:35:00-04:00",
+      "duration_minutes": 705,
+      "stops": 1,
+      "segments": [
+        { "flight_number": "AV 820", "airline_code": "AV", "from": "LIM", "to": "BOG", "depart_iso": "2026-09-12T21:50:00-05:00", "arrive_iso": "2026-09-13T01:30:00-05:00" },
+        { "flight_number": "AV 36", "airline_code": "AV", "from": "BOG", "to": "MIA", "depart_iso": "2026-09-13T06:15:00-05:00", "arrive_iso": "2026-09-13T10:35:00-04:00" }
+      ],
+      "layovers": [{ "airport": "BOG", "minutes": 285 }],
+      "total_layover_minutes": 285,
+      "price_usd": 262,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 9,
+      "refundable": false,
+      "baggage_included": true,
+      "tags": ["one-stop", "red-eye", "long-layover", "budget"]
+    },
+    {
+      "id": "FL-013",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T09:45:00-05:00",
+      "arrive_iso": "2026-09-12T20:55:00-04:00",
+      "duration_minutes": 610,
+      "stops": 1,
+      "segments": [
+        { "flight_number": "UA 862", "airline_code": "UA", "from": "LIM", "to": "IAH", "depart_iso": "2026-09-12T09:45:00-05:00", "arrive_iso": "2026-09-12T15:20:00-05:00" },
+        { "flight_number": "UA 1218", "airline_code": "UA", "from": "IAH", "to": "MIA", "depart_iso": "2026-09-12T17:25:00-05:00", "arrive_iso": "2026-09-12T20:55:00-04:00" }
+      ],
+      "layovers": [{ "airport": "IAH", "minutes": 125 }],
+      "total_layover_minutes": 125,
+      "price_usd": 441,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 5,
+      "refundable": false,
+      "baggage_included": true,
+      "tags": ["one-stop", "morning-departure"]
+    },
+    {
+      "id": "FL-014",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T10:30:00-05:00",
+      "arrive_iso": "2026-09-12T19:45:00-04:00",
+      "duration_minutes": 495,
+      "stops": 1,
+      "segments": [
+        { "flight_number": "AA 988", "airline_code": "AA", "from": "LIM", "to": "MCO", "depart_iso": "2026-09-12T10:30:00-05:00", "arrive_iso": "2026-09-12T17:05:00-04:00" },
+        { "flight_number": "AA 2412", "airline_code": "AA", "from": "MCO", "to": "MIA", "depart_iso": "2026-09-12T18:30:00-04:00", "arrive_iso": "2026-09-12T19:45:00-04:00" }
+      ],
+      "layovers": [{ "airport": "MCO", "minutes": 85 }],
+      "total_layover_minutes": 85,
+      "price_usd": 403,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 8,
+      "refundable": false,
+      "baggage_included": true,
+      "tags": ["one-stop", "morning-departure"]
+    },
+    {
+      "id": "FL-015",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T11:20:00-05:00",
+      "arrive_iso": "2026-09-12T22:00:00-04:00",
+      "duration_minutes": 580,
+      "stops": 1,
+      "segments": [
+        { "flight_number": "AV 693", "airline_code": "AV", "from": "LIM", "to": "SJO", "depart_iso": "2026-09-12T11:20:00-05:00", "arrive_iso": "2026-09-12T13:55:00-06:00" },
+        { "flight_number": "AV 690", "airline_code": "AV", "from": "SJO", "to": "MIA", "depart_iso": "2026-09-12T17:35:00-06:00", "arrive_iso": "2026-09-12T22:00:00-04:00" }
+      ],
+      "layovers": [{ "airport": "SJO", "minutes": 220 }],
+      "total_layover_minutes": 220,
+      "price_usd": 299,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 6,
+      "refundable": false,
+      "baggage_included": true,
+      "tags": ["one-stop", "morning-departure"]
+    },
+    {
+      "id": "FL-016",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T04:05:00-05:00",
+      "arrive_iso": "2026-09-12T13:45:00-04:00",
+      "duration_minutes": 520,
+      "stops": 1,
+      "segments": [
+        { "flight_number": "CM 800", "airline_code": "CM", "from": "LIM", "to": "PTY", "depart_iso": "2026-09-12T04:05:00-05:00", "arrive_iso": "2026-09-12T08:15:00-05:00" },
+        { "flight_number": "CM 339", "airline_code": "CM", "from": "PTY", "to": "MIA", "depart_iso": "2026-09-12T09:20:00-05:00", "arrive_iso": "2026-09-12T13:45:00-04:00" }
+      ],
+      "layovers": [{ "airport": "PTY", "minutes": 65 }],
+      "total_layover_minutes": 65,
+      "price_usd": 356,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 4,
+      "refundable": false,
+      "baggage_included": true,
+      "tags": ["one-stop", "tight-connection"]
+    },
+    {
+      "id": "FL-017",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T08:00:00-05:00",
+      "arrive_iso": "2026-09-12T20:15:00-04:00",
+      "duration_minutes": 675,
+      "stops": 1,
+      "segments": [
+        { "flight_number": "AM 470", "airline_code": "AM", "from": "LIM", "to": "MEX", "depart_iso": "2026-09-12T08:00:00-05:00", "arrive_iso": "2026-09-12T12:40:00-06:00" },
+        { "flight_number": "AM 420", "airline_code": "AM", "from": "MEX", "to": "MIA", "depart_iso": "2026-09-12T15:55:00-06:00", "arrive_iso": "2026-09-12T20:15:00-04:00" }
+      ],
+      "layovers": [{ "airport": "MEX", "minutes": 195 }],
+      "total_layover_minutes": 195,
+      "price_usd": 318,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 9,
+      "refundable": false,
+      "baggage_included": true,
+      "tags": ["one-stop", "morning-departure"]
+    },
+    {
+      "id": "FL-018",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T13:15:00-05:00",
+      "arrive_iso": "2026-09-12T23:40:00-04:00",
+      "duration_minutes": 565,
+      "stops": 1,
+      "segments": [
+        { "flight_number": "AV 824", "airline_code": "AV", "from": "LIM", "to": "BOG", "depart_iso": "2026-09-12T13:15:00-05:00", "arrive_iso": "2026-09-12T16:55:00-05:00" },
+        { "flight_number": "AV 34", "airline_code": "AV", "from": "BOG", "to": "MIA", "depart_iso": "2026-09-12T19:25:00-05:00", "arrive_iso": "2026-09-12T23:40:00-04:00" }
+      ],
+      "layovers": [{ "airport": "BOG", "minutes": 150 }],
+      "total_layover_minutes": 150,
+      "price_usd": 585,
+      "currency": "USD",
+      "cabin": "premium_economy",
+      "seats_left": 4,
+      "refundable": true,
+      "baggage_included": true,
+      "tags": ["one-stop", "afternoon-departure", "premium"]
+    },
+    {
+      "id": "FL-019",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T07:50:00-05:00",
+      "arrive_iso": "2026-09-12T18:35:00-04:00",
+      "duration_minutes": 585,
+      "stops": 1,
+      "segments": [
+        { "flight_number": "AA 940", "airline_code": "AA", "from": "LIM", "to": "CLT", "depart_iso": "2026-09-12T07:50:00-05:00", "arrive_iso": "2026-09-12T14:55:00-04:00" },
+        { "flight_number": "AA 1810", "airline_code": "AA", "from": "CLT", "to": "MIA", "depart_iso": "2026-09-12T16:45:00-04:00", "arrive_iso": "2026-09-12T18:35:00-04:00" }
+      ],
+      "layovers": [{ "airport": "CLT", "minutes": 110 }],
+      "total_layover_minutes": 110,
+      "price_usd": 469,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 3,
+      "refundable": false,
+      "baggage_included": true,
+      "tags": ["one-stop", "morning-departure", "last-seats"]
+    },
+    {
+      "id": "FL-020",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "MIA", "city": "Miami", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T21:35:00-05:00",
+      "arrive_iso": "2026-09-13T12:50:00-04:00",
+      "duration_minutes": 855,
+      "stops": 2,
+      "segments": [
+        { "flight_number": "CM 806", "airline_code": "CM", "from": "LIM", "to": "PTY", "depart_iso": "2026-09-12T21:35:00-05:00", "arrive_iso": "2026-09-13T01:45:00-05:00" },
+        { "flight_number": "CM 380", "airline_code": "CM", "from": "PTY", "to": "MCO", "depart_iso": "2026-09-13T04:05:00-05:00", "arrive_iso": "2026-09-13T08:30:00-04:00" },
+        { "flight_number": "AA 2804", "airline_code": "AA", "from": "MCO", "to": "MIA", "depart_iso": "2026-09-13T11:35:00-04:00", "arrive_iso": "2026-09-13T12:50:00-04:00" }
+      ],
+      "layovers": [
+        { "airport": "PTY", "minutes": 140 },
+        { "airport": "MCO", "minutes": 185 }
+      ],
+      "total_layover_minutes": 325,
+      "price_usd": 276,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 8,
+      "refundable": false,
+      "baggage_included": false,
+      "tags": ["two-stop", "red-eye", "budget"]
+    },
+    {
+      "id": "FL-021",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "FLL", "city": "Fort Lauderdale", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T23:30:00-05:00",
+      "arrive_iso": "2026-09-13T06:05:00-04:00",
+      "duration_minutes": 335,
+      "stops": 0,
+      "segments": [
+        { "flight_number": "NK 572", "airline_code": "NK", "from": "LIM", "to": "FLL", "depart_iso": "2026-09-12T23:30:00-05:00", "arrive_iso": "2026-09-13T06:05:00-04:00" }
+      ],
+      "layovers": [],
+      "total_layover_minutes": 0,
+      "price_usd": 198,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 9,
+      "refundable": false,
+      "baggage_included": false,
+      "tags": ["nonstop", "red-eye", "budget", "alternate-airport"]
+    },
+    {
+      "id": "FL-022",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "FLL", "city": "Fort Lauderdale", "tz": "America/New_York" },
+      "depart_iso": "2026-09-13T01:50:00-05:00",
+      "arrive_iso": "2026-09-13T08:20:00-04:00",
+      "duration_minutes": 330,
+      "stops": 0,
+      "segments": [
+        { "flight_number": "NK 574", "airline_code": "NK", "from": "LIM", "to": "FLL", "depart_iso": "2026-09-13T01:50:00-05:00", "arrive_iso": "2026-09-13T08:20:00-04:00" }
+      ],
+      "layovers": [],
+      "total_layover_minutes": 0,
+      "price_usd": 221,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 5,
+      "refundable": false,
+      "baggage_included": false,
+      "tags": ["nonstop", "red-eye", "budget", "alternate-airport"]
+    },
+    {
+      "id": "FL-023",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "FLL", "city": "Fort Lauderdale", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T22:40:00-05:00",
+      "arrive_iso": "2026-09-13T05:20:00-04:00",
+      "duration_minutes": 340,
+      "stops": 0,
+      "segments": [
+        { "flight_number": "B6 1480", "airline_code": "B6", "from": "LIM", "to": "FLL", "depart_iso": "2026-09-12T22:40:00-05:00", "arrive_iso": "2026-09-13T05:20:00-04:00" }
+      ],
+      "layovers": [],
+      "total_layover_minutes": 0,
+      "price_usd": 267,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 7,
+      "refundable": false,
+      "baggage_included": true,
+      "tags": ["nonstop", "red-eye", "alternate-airport"]
+    },
+    {
+      "id": "FL-024",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "FLL", "city": "Fort Lauderdale", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T09:35:00-05:00",
+      "arrive_iso": "2026-09-12T19:25:00-04:00",
+      "duration_minutes": 530,
+      "stops": 1,
+      "segments": [
+        { "flight_number": "AV 826", "airline_code": "AV", "from": "LIM", "to": "BOG", "depart_iso": "2026-09-12T09:35:00-05:00", "arrive_iso": "2026-09-12T13:15:00-05:00" },
+        { "flight_number": "AV 38", "airline_code": "AV", "from": "BOG", "to": "FLL", "depart_iso": "2026-09-12T15:00:00-05:00", "arrive_iso": "2026-09-12T19:25:00-04:00" }
+      ],
+      "layovers": [{ "airport": "BOG", "minutes": 105 }],
+      "total_layover_minutes": 105,
+      "price_usd": 289,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 9,
+      "refundable": false,
+      "baggage_included": true,
+      "tags": ["one-stop", "morning-departure", "alternate-airport"]
+    },
+    {
+      "id": "FL-025",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "FLL", "city": "Fort Lauderdale", "tz": "America/New_York" },
+      "depart_iso": "2026-09-12T15:55:00-05:00",
+      "arrive_iso": "2026-09-13T03:10:00-04:00",
+      "duration_minutes": 615,
+      "stops": 1,
+      "segments": [
+        { "flight_number": "CM 808", "airline_code": "CM", "from": "LIM", "to": "PTY", "depart_iso": "2026-09-12T15:55:00-05:00", "arrive_iso": "2026-09-12T20:05:00-05:00" },
+        { "flight_number": "CM 346", "airline_code": "CM", "from": "PTY", "to": "FLL", "depart_iso": "2026-09-12T22:45:00-05:00", "arrive_iso": "2026-09-13T03:10:00-04:00" }
+      ],
+      "layovers": [{ "airport": "PTY", "minutes": 160 }],
+      "total_layover_minutes": 160,
+      "price_usd": 238,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 6,
+      "refundable": false,
+      "baggage_included": false,
+      "tags": ["one-stop", "red-eye", "budget", "alternate-airport"]
+    },
+    {
+      "id": "FL-026",
+      "origin": { "code": "LIM", "city": "Lima", "tz": "America/Lima" },
+      "destination": { "code": "FLL", "city": "Fort Lauderdale", "tz": "America/New_York" },
+      "depart_iso": "2026-09-13T09:15:00-05:00",
+      "arrive_iso": "2026-09-13T15:40:00-04:00",
+      "duration_minutes": 325,
+      "stops": 0,
+      "segments": [
+        { "flight_number": "NK 576", "airline_code": "NK", "from": "LIM", "to": "FLL", "depart_iso": "2026-09-13T09:15:00-05:00", "arrive_iso": "2026-09-13T15:40:00-04:00" }
+      ],
+      "layovers": [],
+      "total_layover_minutes": 0,
+      "price_usd": 186,
+      "currency": "USD",
+      "cabin": "economy",
+      "seats_left": 9,
+      "refundable": false,
+      "baggage_included": false,
+      "tags": ["nonstop", "misses-deadline", "budget", "alternate-airport"]
+    }
+  ]
+}

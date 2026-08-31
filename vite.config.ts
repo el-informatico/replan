@@ -8,9 +8,5 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts'],
-    // Phase 0 c1 has no test files yet (dataset invariants arrive with c2).
-    // Removed as soon as real tests exist, so a broken include glob can't
-    // silently pass.
-    passWithNoTests: true,
   },
 })
