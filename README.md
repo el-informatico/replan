@@ -37,7 +37,7 @@ scripts/verify.sh --url URL    # … plus a deploy smoke test
 
 ## Deployed
 
-Vercel: see `agent-memory/current.md` for the current production URL.
+Production (public, no auth): **https://replan-phi.vercel.app**
 
 ## License
 
