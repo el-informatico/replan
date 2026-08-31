@@ -55,4 +55,18 @@ describe('tool authoring budgets', () => {
     const names = TOOLS.map((t) => t.name)
     expect(new Set(names).size).toBe(names.length)
   })
+
+  it('search_flights and update_constraints outputs fit the 1.5K budget', async () => {
+    const call = { signal: new AbortController().signal }
+    const search = await searchFlightsTool.execute({ destination: 'MIA' }, call)
+    expect(
+      JSON.stringify(search).length,
+      `search_flights output: ${JSON.stringify(search).length} chars`,
+    ).toBeLessThanOrEqual(1500)
+    const updated = await updateConstraintsTool.execute({}, call)
+    expect(
+      JSON.stringify(updated).length,
+      `update_constraints output: ${JSON.stringify(updated).length} chars`,
+    ).toBeLessThanOrEqual(1500)
+  })
 })

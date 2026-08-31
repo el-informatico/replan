@@ -49,6 +49,27 @@ describe('update_constraints — seeding and merge', () => {
     expect(c['max_layover_hours']).toBe(2)
   })
 
+  it('preferred_time can be cleared with explicit null (reviewer finding 5)', async () => {
+    const set = await updateConstraintsTool.execute(
+      { preferred_time: '2026-09-13T01:00:00-05:00' },
+      CALL,
+    )
+    expect((set['constraints'] as Record<string, unknown>)['preferred_time']).toBe(
+      '2026-09-13T01:00:00-05:00',
+    )
+    const cleared = await updateConstraintsTool.execute(
+      { preferred_time: null },
+      CALL,
+    )
+    const c = cleared['constraints'] as Record<string, unknown>
+    expect(c['preferred_time']).toBeNull()
+    expect(getSnapshot().constraints.preferredTime).toBeNull()
+    // Ordering restored to price-ascending
+    const results = cleared['results'] as { price_usd: number }[]
+    const prices = results.map((x) => x.price_usd)
+    expect([...prices].sort((a, b) => a - b)).toEqual(prices)
+  })
+
   it('empty object re-runs the search with unchanged constraints', async () => {
     const r = await updateConstraintsTool.execute({}, CALL)
     expect(r['ok']).toBe(true)

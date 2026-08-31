@@ -91,6 +91,21 @@ describe('confirm_booking — idempotency', () => {
     expect(getSnapshot().bookings).toHaveLength(1)
   })
 
+  it('re-holding an ALREADY-BOOKED flight then confirming consumes the stray hold (reviewer finding 1)', async () => {
+    setClockForTests(() => Date.parse('2026-09-12T12:00:00Z'))
+    await holdReservationTool.execute({ flight_id: 'FL-001' }, CALL)
+    await confirmBookingTool.execute({ flight_id: 'FL-001' }, CALL)
+    // Agent/user re-holds the same flight after booking:
+    const reHold = await holdReservationTool.execute({ flight_id: 'FL-001' }, CALL)
+    expect(reHold['ok']).toBe(true)
+    // Idempotent confirm must consume that hold — no "confirmed AND held" UI.
+    const again = await confirmBookingTool.execute({ flight_id: 'FL-001' }, CALL)
+    expect(again['idempotent']).toBe(true)
+    expect(again['confirmation_ref']).toBe('RPLN-FL001')
+    expect(getSnapshot().holds).toHaveLength(0)
+    expect(getSnapshot().bookings).toHaveLength(1)
+  })
+
   it('a different flight can still be booked afterwards (rebooking narrative)', async () => {
     setClockForTests(() => Date.parse('2026-09-12T12:00:00Z'))
     await holdReservationTool.execute({ flight_id: 'FL-001' }, CALL)

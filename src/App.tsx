@@ -13,6 +13,7 @@ import {
 } from './tools/webmcp.ts'
 import {
   getSnapshot,
+  now,
   subscribe,
   type StoreSnapshot,
 } from './state/store.ts'
@@ -247,7 +248,7 @@ function ItineraryCard({
 }
 
 function countdown(expiresAt: number): string {
-  const ms = expiresAt - Date.now()
+  const ms = expiresAt - now()
   if (ms <= 0) return 'expired'
   const m = Math.floor(ms / 60_000)
   const s = Math.floor((ms % 60_000) / 1000)

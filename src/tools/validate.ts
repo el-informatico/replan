@@ -86,6 +86,26 @@ export function getIsoDatetime(
       error: `Field "${key}" must be an ISO 8601 datetime WITH explicit UTC offset, e.g. "2026-09-13T15:00:00-04:00" (got: ${JSON.stringify(v)}). Offsets matter: Lima is -05:00, Miami -04:00.`,
     }
   }
+  // V8's Date.parse rolls impossible dates forward (2026-02-30 → Mar 2)
+  // instead of returning NaN — reject them explicitly so a typo can't
+  // silently widen a filter (reviewer finding 4).
+  const parts = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/.exec(v)
+  if (parts) {
+    const [, y, mo, d, h, mi, s] = parts
+    const month = Number(mo)
+    const day = Number(d)
+    const daysInMonth = new Date(Date.UTC(Number(y), month, 0)).getUTCDate()
+    if (
+      month < 1 || month > 12 ||
+      day < 1 || day > daysInMonth ||
+      Number(h) > 23 || Number(mi) > 59 || Number(s) > 59
+    ) {
+      return {
+        ok: false,
+        error: `Field "${key}" is not a real calendar datetime: ${JSON.stringify(v)} (V8 would roll it forward — check day-of-month and time components).`,
+      }
+    }
+  }
   return { ok: true, value: v }
 }
 
