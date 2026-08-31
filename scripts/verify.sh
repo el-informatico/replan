@@ -61,7 +61,8 @@ if [ -n "$URL" ]; then
   leg "deploy smoke ($URL)"
   body="$(mktemp)"
   trap 'rm -f "$body"' EXIT
-  code="$(curl -sS -L --max-time 30 -o "$body" -w '%{http_code}' "$URL" 2>/dev/null || echo 000)"
+  code="$(curl -sS -L --max-time 30 -o "$body" -w '%{http_code}' "$URL" 2>/dev/null)" || true
+  code="${code:-000}"
   if [ "$code" = "200" ]; then
     if grep -q '<div id="root"></div>' "$body" && grep -q 'src/main.tsx\|assets/index' "$body"; then
       echo "PASS: deploy smoke (HTTP $code, app shell present)"
