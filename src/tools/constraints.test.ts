@@ -69,10 +69,10 @@ describe('update_constraints — merged re-search (the narrative payoff)', () =>
 
   it('results respect the seeded arrival deadline', async () => {
     const r = await updateConstraintsTool.execute({}, CALL)
-    const results = r['results'] as { arrive_iso: string }[]
+    const results = r['results'] as { arrives: string }[]
     const cutoff = Date.parse(hint.must_arrive_by_iso)
     for (const x of results) {
-      expect(Date.parse(x.arrive_iso)).toBeLessThanOrEqual(cutoff)
+      expect(Date.parse(x.arrives)).toBeLessThanOrEqual(cutoff)
     }
   })
 
@@ -82,11 +82,11 @@ describe('update_constraints — merged re-search (the narrative payoff)', () =>
       CALL,
     )
     expect(r['ok']).toBe(true)
-    const results = r['results'] as { depart_iso: string }[]
+    const results = r['results'] as { departs: string }[]
     // The real contract: results are non-decreasing in distance from the
     // preferred departure instant (price must not dominate the order).
     const target = Date.parse('2026-09-13T01:00:00-05:00')
-    const dists = results.map((x) => Math.abs(Date.parse(x.depart_iso) - target))
+    const dists = results.map((x) => Math.abs(Date.parse(x.departs) - target))
     expect([...dists].sort((a, b) => a - b)).toEqual(dists)
     expect(getSnapshot().constraints.preferredTime).toBe('2026-09-13T01:00:00-05:00')
   })
