@@ -11,15 +11,32 @@ beforeEach(() => {
 })
 
 describe('search_flights tool — happy path', () => {
-  it('returns sorted results for MIA', async () => {
+  it('returns compact, capped, price-sorted results for MIA', async () => {
     const r = await searchFlightsTool.execute({ destination: 'MIA' }, {
       signal: new AbortController().signal,
     })
     expect(r['ok']).toBe(true)
     expect(r['count']).toBe(20)
-    const results = r['results'] as { price_usd: number }[]
+    expect(r['showing']).toBe(10)
+    expect(r['note'] as string).toContain('Showing 10 of 20')
+    const results = r['results'] as { price_usd: number; departs: string; arrives: string }[]
+    expect(results).toHaveLength(10)
     const prices = results.map((x) => x.price_usd)
     expect([...prices].sort((a, b) => a - b)).toEqual(prices)
+    for (const row of results) {
+      expect(typeof row.departs).toBe('string')
+      expect(typeof row.arrives).toBe('string')
+    }
+  })
+
+  it('small result sets return everything with no truncation note', async () => {
+    const r = await searchFlightsTool.execute({ destination: 'FLL' }, {
+      signal: new AbortController().signal,
+    })
+    expect(r['count']).toBe(6)
+    expect(r['showing']).toBe(6)
+    expect(r['note']).toBeUndefined()
+    expect(r['results']).toHaveLength(6)
   })
 
   it('applies all four filters together', async () => {
@@ -36,7 +53,7 @@ describe('search_flights tool — happy path', () => {
     expect(r['count'] as number).toBeGreaterThan(0)
   })
 
-  it('updates the store lastSearch and notifies subscribers', async () => {
+  it('updates the store lastSearch with FULL results and notifies subscribers', async () => {
     let notified = 0
     const unsub = subscribe(() => {
       notified += 1
@@ -48,6 +65,7 @@ describe('search_flights tool — happy path', () => {
     const snap = getSnapshot()
     expect(snap.lastSearch?.via).toBe('search_flights')
     expect(snap.lastSearch?.results).toHaveLength(6)
+    expect(snap.lastSearch?.results[0]).toHaveProperty('segments')
     expect(notified).toBeGreaterThan(0)
   })
 })

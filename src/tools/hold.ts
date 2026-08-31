@@ -42,18 +42,19 @@ async function executeHold(
   input: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
   if (!isRecord(input)) {
-    return { ok: false, error: 'Input must be an object.' }
+    return { ok: false, code: 'INVALID_INPUT', error: 'Input must be an object.' }
   }
   const extras = unknownKeys(input, ['flight_id'])
   if (extras.length > 0) {
     return {
       ok: false,
+      code: 'INVALID_INPUT',
       error: `Unknown field(s): ${extras.join(', ')}. Accepted: flight_id.`,
     }
   }
 
   const id = getString(input, 'flight_id')
-  if (!id.ok) return { ok: false, error: id.error }
+  if (!id.ok) return { ok: false, code: 'INVALID_INPUT', error: id.error }
 
   const flight = loadDataset().flights.find((f) => f.id === id.value)
   if (!flight) {
@@ -63,6 +64,7 @@ async function executeHold(
       .join(', ')
     return {
       ok: false,
+      code: 'NOT_FOUND',
       error: `Unknown flight_id "${id.value}". Get ids from search_flights results (e.g. ${sample}; ${loadDataset().flights.length} flights total).`,
     }
   }
@@ -71,6 +73,7 @@ async function executeHold(
   if ('conflict' in outcome) {
     return {
       ok: false,
+      code: 'HOLD_EXISTS',
       error: `Flight ${id.value} is already held. The active hold expires at ${new Date(outcome.conflict.expiresAt).toISOString()} (holds last 15 minutes). Wait for expiry, or confirm_booking if the traveler wants this flight.`,
     }
   }

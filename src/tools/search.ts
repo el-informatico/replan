@@ -6,6 +6,7 @@
 import { loadDataset } from '../domain/flights.ts'
 import { searchFlights, type SearchFilters } from '../domain/search.ts'
 import { nowIso, setLastSearch } from '../state/store.ts'
+import { compactResults } from './payload.ts'
 import {
   getIsoDatetime,
   getNumber,
@@ -23,15 +24,12 @@ export const searchFlightsTool: WebMcpTool = {
   title: 'Search rebooking flights',
   description:
     'Search rebooking flights from Lima (LIM) after the cancellation. ' +
-    'Required: destination airport — "MIA" (Miami) or "FLL" (Fort Lauderdale, ' +
-    'reachable by ground transport). Optional filters (omit = unconstrained): ' +
-    'arrive_before (ISO 8601 WITH UTC offset, e.g. 2026-09-13T15:00:00-04:00), ' +
-    'max_price (USD), max_layover_hours. Returns { ok, count, results } sorted ' +
-    'by price ascending; each result has id, times, stops, layover total, ' +
-    'price, cabin, seats_left, tags. Empty results are VALID — loosen a ' +
-    'filter or try the other airport. Next steps: hold_reservation(id) to ' +
-    'hold, update_constraints to change the traveler’s constraints and ' +
-    're-search, confirm_booking(id) to book a held flight.',
+    'Required: destination — "MIA" (Miami) or "FLL" (Fort Lauderdale, ' +
+    'ground-reachable). Optional filters, omit any to leave it unconstrained: ' +
+    'arrive_before (ISO 8601 with UTC offset), max_price (USD), ' +
+    'max_layover_hours. Returns cheapest flights first; empty results are ' +
+    'valid — loosen a filter or try the other airport. Follow with ' +
+    'hold_reservation(flight_id) to hold a result.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -43,12 +41,12 @@ export const searchFlightsTool: WebMcpTool = {
       arrive_before: {
         type: 'string',
         description:
-          'Only flights arriving at or before this instant. ISO 8601 with ' +
-          'explicit UTC offset (Lima is -05:00, Miami -04:00).',
+          'Arrive at or before this instant. ISO 8601 with UTC offset ' +
+          '(Lima -05:00, Miami -04:00).',
       },
       max_price: {
         type: 'number',
-        description: 'Maximum total price in USD (must be > 0).',
+        description: 'Maximum total price in USD (> 0).',
       },
       max_layover_hours: {
         type: 'number',
@@ -58,7 +56,10 @@ export const searchFlightsTool: WebMcpTool = {
     required: ['destination'],
     additionalProperties: false,
   },
-  annotations: { readOnlyHint: true },
+  // Writes lastSearch to the page state (the results panel) — so this is a
+  // state-mutating tool despite feeling read-only (GoogleLabs precedent:
+  // their searchFlights is also readOnlyHint:false).
+  annotations: { readOnlyHint: false },
   execute: async (input) => {
     const result = await executeSearch(input)
     logToolCall({ tool: 'search_flights', at: nowIso(), input, result })
@@ -70,7 +71,7 @@ async function executeSearch(
   input: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
   if (!isRecord(input)) {
-    return { ok: false, error: 'Input must be an object.' }
+    return { ok: false, code: 'INVALID_INPUT', error: 'Input must be an object.' }
   }
   const extras = unknownKeys(input, [
     'destination',
@@ -81,33 +82,39 @@ async function executeSearch(
   if (extras.length > 0) {
     return {
       ok: false,
+      code: 'INVALID_INPUT',
       error: `Unknown field(s): ${extras.join(', ')}. Accepted: destination, arrive_before, max_price, max_layover_hours.`,
     }
   }
 
   const destination = getString(input, 'destination')
-  if (!destination.ok) return { ok: false, error: destination.error }
+  if (!destination.ok) {
+    return { ok: false, code: 'INVALID_INPUT', error: destination.error }
+  }
   if (!DESTINATIONS.includes(destination.value)) {
     return {
       ok: false,
+      code: 'UNKNOWN_DESTINATION',
       error: `Unknown destination "${destination.value}". This scenario serves: ${DESTINATIONS.join(', ')}.`,
     }
   }
 
   const arriveBefore = getIsoDatetime(input, 'arrive_before', { required: false })
-  if (!arriveBefore.ok) return { ok: false, error: arriveBefore.error }
+  if (!arriveBefore.ok) {
+    return { ok: false, code: 'INVALID_INPUT', error: arriveBefore.error }
+  }
 
   const maxPrice = getNumber(input, 'max_price', {
     required: false,
     exclusiveMin: 0,
   })
-  if (!maxPrice.ok) return { ok: false, error: maxPrice.error }
+  if (!maxPrice.ok) return { ok: false, code: 'INVALID_INPUT', error: maxPrice.error }
 
   const maxLayover = getNumber(input, 'max_layover_hours', {
     required: false,
     min: 0,
   })
-  if (!maxLayover.ok) return { ok: false, error: maxLayover.error }
+  if (!maxLayover.ok) return { ok: false, code: 'INVALID_INPUT', error: maxLayover.error }
 
   const filters: SearchFilters = {
     destination: destination.value,
@@ -119,7 +126,16 @@ async function executeSearch(
   const results = searchFlights(loadDataset().flights, filters)
   setLastSearch({ via: 'search_flights', filters, results })
 
-  return { ok: true, count: results.length, results }
+  // Compact payload per the authoring brief (~1.5K output budget); full
+  // summaries live on in store.lastSearch for the UI.
+  const compact = compactResults(results)
+  return {
+    ok: true,
+    count: compact.total,
+    showing: compact.showing,
+    ...(compact.note ? { note: compact.note } : {}),
+    results: compact.results,
+  }
 }
 
 export function registerSearchFlights() {

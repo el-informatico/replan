@@ -12,6 +12,7 @@
 import { loadDataset } from '../domain/flights.ts'
 import { searchFlights, type SearchFilters } from '../domain/search.ts'
 import { getSnapshot, nowIso, setConstraints, setLastSearch } from '../state/store.ts'
+import { compactResults } from './payload.ts'
 import {
   getIsoDatetime,
   getNumber,
@@ -24,15 +25,13 @@ export const updateConstraintsTool: WebMcpTool = {
   name: 'update_constraints',
   title: 'Update traveler constraints and re-search',
   description:
-    'Change the traveler’s rebooking constraints and immediately re-search ' +
-    'with the merged rule set — this returns NEW results, not just an ' +
-    'acknowledgment. Provide any subset: max_price (USD, > 0), ' +
-    'max_layover_hours (>= 0), preferred_time (ISO 8601 with UTC offset — ' +
-    'when set, results order by departure closest to that time instead of ' +
-    'lowest price). Unmentioned constraints persist from the previous state ' +
-    '(calling with {} re-runs the search with the current constraints). ' +
-    'Returns { ok, constraints (the complete effective set), count, results }. ' +
-    'The page’s constraints panel and results update live.',
+    'Change the traveler’s rebooking constraints and re-search immediately — ' +
+    'returns new results, not just an acknowledgment. Provide any subset: ' +
+    'max_price (USD), max_layover_hours, preferred_time (ISO 8601 with UTC ' +
+    'offset; reorders results by departure closest to that time). ' +
+    'Unmentioned constraints persist; {} re-runs with the current set. ' +
+    'Returns { ok, constraints (complete effective set), count, results }. ' +
+    'The page’s constraints and results update live.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -47,9 +46,9 @@ export const updateConstraintsTool: WebMcpTool = {
       preferred_time: {
         type: 'string',
         description:
-          'Preferred departure instant, ISO 8601 with explicit UTC offset ' +
-          '(e.g. 2026-09-12T22:00:00-05:00 for a red-eye). Reorders results ' +
-          'by closeness of departure. Optional.',
+          'Preferred departure instant, ISO 8601 with UTC offset ' +
+          '(e.g. 2026-09-12T22:00:00-05:00). Reorders results by departure ' +
+          'closeness.',
       },
     },
     additionalProperties: false,
@@ -65,7 +64,7 @@ async function executeUpdate(
   input: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
   if (!isRecord(input)) {
-    return { ok: false, error: 'Input must be an object.' }
+    return { ok: false, code: 'INVALID_INPUT', error: 'Input must be an object.' }
   }
   const extras = unknownKeys(input, [
     'max_price',
@@ -75,6 +74,7 @@ async function executeUpdate(
   if (extras.length > 0) {
     return {
       ok: false,
+      code: 'INVALID_INPUT',
       error: `Unknown field(s): ${extras.join(', ')}. Accepted: max_price, max_layover_hours, preferred_time.`,
     }
   }
@@ -83,18 +83,20 @@ async function executeUpdate(
     required: false,
     exclusiveMin: 0,
   })
-  if (!maxPrice.ok) return { ok: false, error: maxPrice.error }
+  if (!maxPrice.ok) return { ok: false, code: 'INVALID_INPUT', error: maxPrice.error }
 
   const maxLayover = getNumber(input, 'max_layover_hours', {
     required: false,
     min: 0,
   })
-  if (!maxLayover.ok) return { ok: false, error: maxLayover.error }
+  if (!maxLayover.ok) return { ok: false, code: 'INVALID_INPUT', error: maxLayover.error }
 
   const preferredTime = getIsoDatetime(input, 'preferred_time', {
     required: false,
   })
-  if (!preferredTime.ok) return { ok: false, error: preferredTime.error }
+  if (!preferredTime.ok) {
+    return { ok: false, code: 'INVALID_INPUT', error: preferredTime.error }
+  }
 
   // Partial merge: only provided keys change; the rest persist.
   const current = getSnapshot().constraints
@@ -121,6 +123,8 @@ async function executeUpdate(
   const results = searchFlights(loadDataset().flights, filters)
   setLastSearch({ via: 'update_constraints', filters, results })
 
+  // Compact payload per the authoring brief; full summaries stay in the store.
+  const compact = compactResults(results)
   return {
     ok: true,
     constraints: {
@@ -130,8 +134,10 @@ async function executeUpdate(
       max_layover_hours: merged.maxLayoverHours,
       preferred_time: merged.preferredTime,
     },
-    count: results.length,
-    results,
+    count: compact.total,
+    showing: compact.showing,
+    ...(compact.note ? { note: compact.note } : {}),
+    results: compact.results,
   }
 }
 
