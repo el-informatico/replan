@@ -1,5 +1,37 @@
 # Current work
 
+## Where things stand — pre-shutdown snapshot (2026-09-01, after p5c4)
+
+- **Phases 0–4: CLOSED and verified** (Phase 0 scaffolding; Phase 1
+  five tools + human-verified five-tool run; Phase 2 eleven tools,
+  closure-audited; Phase 3 eleven-tool human run, all pins matched;
+  Phase 4 search_flights_semantic + live Convex index, independently
+  reviewed — records in progress.md / docs/reviews/).
+- **Phase 5: docs+tests COMPLETE (p5c1–p5c4)** — twelve-tool script +
+  worksheet, demo-script test extension, medium/short recording
+  variants + mutation-tested drift guard, usage guide. Its single
+  remaining step is the HUMAN verification run (below).
+- **Before Devpost submission (deadline 2026-09-03), in order:**
+  1. the human verification run — LONG/live script against the
+     worksheet (docs/verification/phase5-human-run-worksheet.md),
+     record the outcome block, hand it back;
+  2. record the demo video — SHORT variant take with the FULL cut plan
+     (gate cuts + inter-turn pass), then the human's editing plan:
+     1.5x-speed + jump-cuts;
+  3. Devpost text description + video narration: ALREADY DRAFTED by
+     the human OUTSIDE this repo — they are deliberately not in-repo,
+     don't hunt for them here;
+  4. Convex dashboard cleanup: delete scratch project
+     replan-vector-preflight (optimistic-alligator-511) and the spare
+     deployment calm-mosquito-532 (carried from Phase 4's notes).
+- **No in-progress work**: task list empty, git clean and fully pushed
+  at 8ed4274, verify.sh PASS at that tree. Known-open (pre-existing,
+  non-blocking): F006 — fresh checkouts without .env.local fail 5
+  semantic-client tests (site unaffected); fix as its own src/
+  increment if ever needed.
+
+---
+
 ## PHASE 5 (12-tool demo script + worksheet) — COMPLETE; the human run is
 ## the only remaining step
 ## 2026-09-01
