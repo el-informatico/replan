@@ -62,6 +62,26 @@ turn below carries an explicit gate line.
 
 ## Pre-run checks
 
+- **TURN 0 (OPTIONAL) — output-format orientation, pasted immediately
+  before Turn 1 (after the P0 card check):** the scripted conversation
+  starts at Turn 1 below. If you want ChatGPT to surface literal,
+  copyable tool-call evidence at every step instead of only a
+  natural-language summary, send this one message first and wait for a
+  plain acknowledgment:
+  > Before we start: for the rest of this conversation, whenever you
+  > call a tool on this page, please show me the exact tool name, the
+  > exact arguments you passed, and the raw JSON you got back — before
+  > your own reply. I'd like to double-check the data myself.
+  - Purely an output-format request: it names no tools, no arguments,
+    and no plan — the traveler's situation and every tool invocation
+    stay driven entirely by the scripted HUMAN turns, verbatim as
+    written, and it does not touch the confirmation gates (answer
+    those as they come).
+  - The run is equally valid WITHOUT Turn 0 — the in-app browser's
+    tool-use UI normally shows each call and result anyway; this only
+    makes the evidence easier to transcribe into this worksheet.
+  - Turn 0 is NOT one of the 32 scripted turns: nothing about its
+    reply is checked, and it is not a deviation source.
 - **P0 — the script's header precondition:** load the URL; the
   **"Agent tools" card must list ELEVEN tools, every row "registered"**
   (it renders a moment after load). Any row "unavailable" → STOP: the
