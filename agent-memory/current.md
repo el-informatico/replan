@@ -99,15 +99,44 @@ in-app-browser human pass is Phase 3's job (below).
 
 1. **Phase 2 in-app-browser verification: OPEN — Phase 3** (assumptions
    above; a fresh session should read CONTINUITY.md + this file first).
-2. (User, non-blocking) AI-use disclosure in the GitHub README.
+2. **(= Phase 1 open item 3, carried, untouched in Phase 2 and the
+   audit)** AI-use disclosure in the GitHub README — user-owned,
+   non-blocking. Verified 2026-08-31 by the closure audit: README still
+   has NO disclosure statement (grep matches product-description lines
+   only).
 3. (Optional polish) Dynamic tool registration still deferred (D006) —
    11 static tools chosen for judge-facing predictability; the scored
    "WebMCP Leverage" opportunity remains if there's slack before Sep 3.
-4. (Carried, awaiting user decision) demo-script turn-count vs
-   confirmation gate — see "Observed" below; unchanged by Phase 2.
+4. **(= Phase 1 open item 5, carried, deliberately untouched)** demo
+   script turn-count vs observed confirmation gates — awaiting the
+   user's call (changes the video shot list); see "Observed" below.
+   Phase 2 ADDS: expect the gate on update_hotel_reservation,
+   book_ground_transport, and notify_contact too — budget three more
+   "Yes" turns in any Phase 3 script.
 5. evals/regression/ README still promises per-failure suites; Phase 1+2
    keep regressions as named tests in colocated suites (convention) —
    reconcile the README wording when convenient.
+
+## Closure audit (2026-08-31) — CLOSED, one code fix (d0bac3c)
+
+The reviewing session audited the Phase 2 closure (raw evidence + three
+design clarifications); full record in
+docs/reviews/phase2-closure-audit.md, raw reviewer output preserved in
+docs/reviews/phase2-independent-review.md. Outcome: A1 per-commit verify
+evidence quoted (commit-message Evidence lines + per-tree worktree
+re-runs, all exit 0; capture gap — piped filters, no durable per-commit
+log at commit time — disclosed); A3 literal bundle greps pasted (the
+audit's double-quote pattern returns 0 — minifier emits backticks; the
+corrected pattern returns exactly 1 per tool; 11 names × 1 each);
+B1 answered: the hotel seed+shift (D008) was driven by the dispatch's
+11-tool DONE criterion, NOT by the tool-count research finding (which
+shaped description length only); B3: the stale-leg cycle has a single
+end-to-end test (summary.test.ts:100) — no gap. One real defect found
+and fixed as its own verify-gated increment p2c12 (d0bac3c): the trip
+total now flags multiple_bookings_detected + superseded_flight_ids when
+more than one distinct flight is booked (B2 — same read-time honesty
+standard as stale_reason; total semantics unchanged; plan §7 amendment
+6). 19 files / 188 tests at d0bac3c; pushed, trailers clean.
 
 ## Observed (documented fact, 2026-08-31): ChatGPT confirmation gate on
 ## write-action tools
