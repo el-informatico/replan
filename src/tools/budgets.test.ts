@@ -9,6 +9,7 @@ import { searchHotelsTool } from './hotels.ts'
 import { notifyContactTool } from './notify.ts'
 import { pingTool } from './ping.ts'
 import { searchFlightsTool } from './search.ts'
+import { generateItinerarySummaryTool } from './summary.ts'
 import { bookGroundTransportTool } from './transport.ts'
 
 /**
@@ -32,6 +33,7 @@ const TOOLS = [
   bookGroundTransportTool,
   notifyContactTool,
   calculateTotalCostTool,
+  generateItinerarySummaryTool,
 ]
 
 describe('tool authoring budgets', () => {
@@ -120,6 +122,15 @@ describe('tool authoring budgets', () => {
     expect(
       JSON.stringify(cost).length,
       `calculate_total_cost output: ${JSON.stringify(cost).length} chars`,
+    ).toBeLessThanOrEqual(1500)
+  })
+
+  it('generate_itinerary_summary output fits the 1.5K budget (fresh state; the complete-chain case is asserted in summary.test.ts)', async () => {
+    const call = { signal: new AbortController().signal }
+    const summary = await generateItinerarySummaryTool.execute({}, call)
+    expect(
+      JSON.stringify(summary).length,
+      `generate_itinerary_summary output: ${JSON.stringify(summary).length} chars`,
     ).toBeLessThanOrEqual(1500)
   })
 })

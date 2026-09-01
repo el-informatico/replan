@@ -104,3 +104,116 @@ export function bookedKinds(snapshot: StoreSnapshot): CostKind[] {
   if (snapshot.transportBooking) kinds.push('transport')
   return kinds
 }
+
+// ---------------------------------------------------------------------------
+// Itinerary composition — the final-receipt moment (T10). Compact by
+// design: no flight segments, no tag lists; the ledger lives in the store.
+// ---------------------------------------------------------------------------
+
+export interface ItinerarySummary {
+  status: 'complete' | 'partial'
+  missing: CostKind[]
+  flight:
+    | {
+        confirmation_ref: string
+        id: string
+        route: string
+        departs: string
+        arrives: string
+        price_usd: number
+      }
+    | null
+  hotels: {
+    reservation_id: string
+    hotel_name: string
+    check_in: string
+    check_out: string
+    nights: number
+    total_usd: number
+    updated: boolean
+  }[]
+  transport:
+    | {
+        booking_ref: string
+        type: string
+        from_airport: string
+        to_zone: string
+        pickup_time: string
+        price_usd: number
+      }
+    | null
+  notifications: {
+    count: number
+    last: { id: string; channel: string; target: string; sent_at: string } | null
+  }
+  cost: CostBreakdown
+}
+
+export function composeItinerary(snapshot: StoreSnapshot): ItinerarySummary {
+  const booked = new Set(bookedKinds(snapshot))
+  const missing = COST_KINDS.filter((k) => !booked.has(k))
+
+  const booking = latestBookingOf(snapshot)
+  const flight = booking
+    ? (() => {
+        const f = booking.itinerary['flight'] as
+          | { route?: string; depart_iso?: string; arrive_iso?: string }
+          | undefined
+        return {
+          confirmation_ref: booking.confirmationRef,
+          id: booking.flightId,
+          route: f?.route ?? booking.flightId,
+          departs: f?.depart_iso ?? '',
+          arrives: f?.arrive_iso ?? '',
+          price_usd: Number(booking.itinerary['price_usd'] ?? 0),
+        }
+      })()
+    : null
+
+  const hotels = snapshot.hotelReservations.map((res) => {
+    const hotel = hotelById(loadHotelsDataset().hotels, res.hotelId)
+    return {
+      reservation_id: res.reservationId,
+      hotel_name: hotel ? hotel.name : res.hotelId,
+      check_in: res.checkInIso,
+      check_out: res.checkOutIso,
+      nights: res.nights,
+      total_usd: res.totalUsd,
+      updated: res.updatedAtIso !== null,
+    }
+  })
+
+  const t = snapshot.transportBooking
+  const transport = t
+    ? {
+        booking_ref: t.bookingRef,
+        type: t.type,
+        from_airport: t.fromAirport,
+        to_zone: t.toZone,
+        pickup_time: t.pickupIso,
+        price_usd: t.priceUsd,
+      }
+    : null
+
+  const last = snapshot.notifications.length > 0 ? snapshot.notifications.at(-1)! : null
+
+  return {
+    status: missing.length === 0 ? 'complete' : 'partial',
+    missing,
+    flight,
+    hotels,
+    transport,
+    notifications: {
+      count: snapshot.notifications.length,
+      last: last
+        ? {
+            id: last.notificationId,
+            channel: last.channel,
+            target: last.recipientTarget,
+            sent_at: last.sentAtIso,
+          }
+        : null,
+    },
+    cost: buildCostBreakdown(snapshot),
+  }
+}
