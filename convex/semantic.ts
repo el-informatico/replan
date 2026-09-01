@@ -34,9 +34,8 @@ async function embedQuery(query: string): Promise<number[]> {
         "(set with: npx convex env set GEMINI_API_KEY <value>).",
     );
   }
-  let res: Response;
-  try {
-    res = await fetch(`${GEMINI_BASE}/models/${MODEL}:embedContent`, {
+  const embedContent = () =>
+    fetch(`${GEMINI_BASE}/models/${MODEL}:embedContent`, {
       method: "POST",
       headers: { "content-type": "application/json", "x-goog-api-key": key },
       body: JSON.stringify({
@@ -45,6 +44,16 @@ async function embedQuery(query: string): Promise<number[]> {
         output_dimensionality: DIMENSIONS,
       }),
     });
+  let res: Response;
+  try {
+    res = await embedContent();
+    // Free-tier per-minute embed quota trips under bursts (found live in
+    // the Phase-4 smoke: 429 global_embed_content_requests_per_minute).
+    // One backoff retry absorbs demo-paced blips.
+    if (res.status === 429) {
+      await new Promise((r) => setTimeout(r, 1500));
+      res = await embedContent();
+    }
   } catch (err) {
     throw new SemanticError(
       "EMBEDDING_FAILED",
@@ -87,7 +96,24 @@ export const semanticSearch = internalAction({
   handler: async (ctx, args) => {
     const limit = Math.min(Math.max(args.limit ?? 8, 1), 16);
     const t0 = Date.now();
-    const vector = await embedQuery(args.query);
+    // Errors are RETURNED, not thrown: custom Error fields (the
+    // errors-as-data code) do not survive the runAction boundary — a live
+    // 429 arrived at the http route as a generic Error with the code lost
+    // (Phase-4 smoke finding). Returning keeps the code intact.
+    let vector: number[];
+    try {
+      vector = await embedQuery(args.query);
+    } catch (err) {
+      const carried = (err as { code?: unknown })?.code;
+      return {
+        ok: false as const,
+        code:
+          typeof carried === "string" && carried.length > 0
+            ? carried
+            : "SEMANTIC_SEARCH_UNAVAILABLE",
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
     const embedMs = Date.now() - t0;
 
     const hits = await ctx.vectorSearch("flights", "by_embedding", {

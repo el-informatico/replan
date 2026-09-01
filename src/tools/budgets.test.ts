@@ -166,7 +166,7 @@ describe('tool authoring budgets', () => {
       results: Array.from({ length: 8 }, (_, i) => ({
         flight_id: `FL-${String(i + 1).padStart(3, '0')}`,
         text: 'corpus text',
-        similarity_score: 0.9 - i * 0.05,
+        similarity_score: 0.9 - i * 0.03,
       })),
     })
     const call = { signal: new AbortController().signal }
