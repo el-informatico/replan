@@ -7,6 +7,8 @@ vi.mock('../lib/semantic-client.ts', () => ({
 }))
 
 import { fetchSemanticHits } from '../lib/semantic-client.ts'
+import { loadDataset } from '../domain/flights.ts'
+import { toSummary } from '../domain/search.ts'
 import { resetForTests } from '../state/store.ts'
 import { confirmBookingTool } from './confirm.ts'
 import { calculateTotalCostTool } from './cost.ts'
@@ -52,6 +54,27 @@ const TOOLS = [
 beforeEach(() => {
   resetForTests()
 })
+
+/** The 8 flight ids whose compact tool rows are longest in the dataset. */
+function widestCompactRows(): string[] {
+  return loadDataset()
+    .flights.map((f) => toSummary(f))
+    .map((s) => ({
+      id: s.id,
+      len: JSON.stringify({
+        id: s.id,
+        airline: s.airline_code,
+        route: s.route,
+        departs: s.depart_iso,
+        arrives: s.arrive_iso,
+        price_usd: s.price_usd,
+        similarity_score: 0.123,
+      }).length,
+    }))
+    .sort((a, b) => b.len - a.len)
+    .slice(0, 8)
+    .map((r) => r.id)
+}
 
 describe('tool authoring budgets', () => {
   it('every tool description is non-empty and ≤500 chars', () => {
@@ -156,15 +179,19 @@ describe('tool authoring budgets', () => {
     ).toBeLessThanOrEqual(1500)
   })
 
-  it('search_flights_semantic output fits the 1.5K budget (widest case: 8 hydrated rows + notes)', async () => {
+  it('search_flights_semantic output fits the 1.5K budget (widest case: the 8 longest compact rows in the dataset)', async () => {
     const mockFetch = vi.mocked(fetchSemanticHits)
     mockFetch.mockReset()
+    // Drift-proof fixture (reviewer finding 7): pick the 8 flights whose
+    // compact rows are the longest in the REAL dataset, so a row growing
+    // (4-digit price, longer route string) moves this test, not production.
+    const widestIds = [...widestCompactRows()]
     mockFetch.mockResolvedValue({
       ok: true,
       hits: 8,
       embed_ms: 120,
-      results: Array.from({ length: 8 }, (_, i) => ({
-        flight_id: `FL-${String(i + 1).padStart(3, '0')}`,
+      results: widestIds.map((flight_id, i) => ({
+        flight_id,
         text: 'corpus text',
         similarity_score: 0.9 - i * 0.03,
       })),

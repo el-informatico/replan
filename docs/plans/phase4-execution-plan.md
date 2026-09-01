@@ -9,8 +9,10 @@ Numbering continues Phase 2 (T5–T10) → **T11**. One tool, one phase.
 `docs/research/convex-vector-preflight.md` + the sibling-repo recon beside
 it. Load-bearing facts, all validated live:
 
-- `vectorIndex` on `v.array(v.float64())`, dims 768 (range 2–4096); push
-  works on a free plan.
+- `vectorIndex` on `v.array(v.float64())`, dims 2–4096 (the Gate-1 scratch
+  validated the mechanics at 384; the shipped index is 768 — Gemini's
+  `output_dimensionality` — exercised live at seed/deploy). Push works on
+  a free plan.
 - `ctx.vectorSearch` is **actions-only**; actions have **no `ctx.db`** —
   hydrate inside Convex via `internalQuery`; hits are `{_id, _score}`.
 - Browser-realistic latency 194–199 ms per search; `server_ms` 3–23.
@@ -116,4 +118,20 @@ DONE ONLY WHEN: all AC have passing cited evidence and verify.sh exit 0.
 - ChatGPT read-only expectation: no confirmation gate expected (readOnly
   tool precedent), single data point caveat stands.
 - The convex.site endpoint is public: fine for the demo; abuse bounded by
-  free tier + errors-as-data.
+  free tier + errors-as-data + the tool's 60s query memoization.
+- **Pre-demo floor re-check (reviewer finding 14)**: the 0.60 floor sits
+  0.016 under the lowest measured on-topic score (0.616) — re-run the two
+  canned demo queries against the live endpoint before recording the demo;
+  if scores drifted low, recalibrate MIN_SIMILARITY and note it here.
+- Demo phrasings must be POSITIVE: embedding retrieval does not invert on
+  negation ("I hate flying all night" returns red-eyes — live-observed).
+
+## 7. Review disclosure (independent review, 2026-09-01)
+
+No MAJOR findings; 9 MINOR + 7 NIT, all disclosed in the p4c8 commit and
+agent-memory/progress.md. Notable process gaps accepted for the deadline:
+verify.sh does NOT typecheck `convex/` or `scripts/` (the backend gate is
+`npx convex deploy`'s own typecheck — run it after any backend edit;
+reviewer finding 4). Reviewer finding 3 ("convex in dependencies") was
+disputed with evidence: convex is in devDependencies, runtime deps remain
+exactly react + react-dom.

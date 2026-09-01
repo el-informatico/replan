@@ -14,5 +14,8 @@ export default defineSchema({
       vectorField: "embedding",
       dimensions: 768,
     })
-    .index("by_flight_id", ["flight_id"]),
+    // uniqueIndex (reviewer finding 1): a re-import without clearFlights
+    // must FAIL LOUDLY here, not silently double every row in search
+    // results.
+    .uniqueIndex("by_flight_id", ["flight_id"]),
 });

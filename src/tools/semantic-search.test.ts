@@ -8,8 +8,8 @@ vi.mock('../lib/semantic-client.ts', () => ({
 }))
 
 import { fetchSemanticHits } from '../lib/semantic-client.ts'
-import { resetForTests } from '../state/store.ts'
-import { searchFlightsSemanticTool } from './semantic-search.ts'
+import { resetForTests, setClockForTests } from '../state/store.ts'
+import { clearSemanticCacheForTests, searchFlightsSemanticTool } from './semantic-search.ts'
 
 const mockFetch = vi.mocked(fetchSemanticHits)
 
@@ -20,6 +20,7 @@ const CALL = { signal: SIGNAL } as Parameters<
 
 beforeEach(() => {
   resetForTests()
+  clearSemanticCacheForTests()
   mockFetch.mockReset()
 })
 
@@ -100,6 +101,48 @@ describe('search_flights_semantic tool — empty is valid, never an error', () =
 })
 
 describe('search_flights_semantic tool — hydration guards', () => {
+  it('includes a hit at exactly the floor (0.6 is >=, not >)', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      hits: 2,
+      embed_ms: 40,
+      results: [hit('FL-016', 0.6), hit('FL-001', 0.5999)],
+    })
+    const r = await searchFlightsSemanticTool.execute({ query: 'edge' }, CALL)
+    const results = r['results'] as Array<Record<string, unknown>>
+    expect(results.map((x) => x['id'])).toEqual(['FL-016'])
+    expect(r['count']).toBe(1)
+  })
+
+  it('rounds similarity_score to 3 decimals (0.6166667 -> 0.617)', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      hits: 1,
+      embed_ms: 30,
+      results: [hit('FL-016', 0.6166667)],
+    })
+    const r = await searchFlightsSemanticTool.execute({ query: 'rounding' }, CALL)
+    const results = r['results'] as Array<Record<string, unknown>>
+    expect(results[0]['similarity_score']).toBe(0.617)
+  })
+
+  it('dedupes repeated flight_ids (double-seed guard, reviewer finding 1)', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      hits: 4,
+      embed_ms: 60,
+      results: [
+        hit('FL-016', 0.8),
+        hit('FL-016', 0.79),
+        hit('FL-021', 0.7),
+        hit('FL-021', 0.69),
+      ],
+    })
+    const r = await searchFlightsSemanticTool.execute({ query: 'dupes' }, CALL)
+    const results = r['results'] as Array<Record<string, unknown>>
+    expect(results.map((x) => x['id'])).toEqual(['FL-016', 'FL-021'])
+  })
+
   it('skips unknown flight ids and discloses them; count stays pre-skip', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
@@ -165,6 +208,59 @@ describe('search_flights_semantic tool — errors-as-data passthrough', () => {
     )
     expect(r['code']).toBe('EMBEDDING_FAILED')
     expect(r['ok']).toBe(false)
+  })
+})
+
+describe('search_flights_semantic tool — 60s query memoization (reviewer finding 9)', () => {
+  it('repeats hit the seam once for repeated queries within the TTL', async () => {
+    let t = 1_000_000
+    setClockForTests(() => t)
+    mockFetch.mockResolvedValue({
+      ok: true,
+      hits: 1,
+      embed_ms: 30,
+      results: [hit('FL-016', 0.8)],
+    })
+    const first = await searchFlightsSemanticTool.execute(
+      { query: 'same query' },
+      CALL,
+    )
+    const second = await searchFlightsSemanticTool.execute(
+      { query: 'same query' },
+      CALL,
+    )
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+    expect(second).toEqual(first)
+  })
+
+  it('expires after the TTL and re-queries; never caches failures', async () => {
+    let t = 1_000_000
+    setClockForTests(() => t)
+    mockFetch.mockResolvedValue({
+      ok: true,
+      hits: 1,
+      embed_ms: 30,
+      results: [hit('FL-016', 0.8)],
+    })
+    await searchFlightsSemanticTool.execute({ query: 'ttl' }, CALL)
+    t += 60_001 // past the TTL
+    await searchFlightsSemanticTool.execute({ query: 'ttl' }, CALL)
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+
+    mockFetch.mockResolvedValue({
+      ok: false,
+      code: 'EMBEDDING_FAILED',
+      error: 'HTTP 429',
+    })
+    await searchFlightsSemanticTool.execute({ query: 'fails' }, CALL)
+    mockFetch.mockResolvedValue({
+      ok: true,
+      hits: 1,
+      embed_ms: 30,
+      results: [hit('FL-016', 0.8)],
+    })
+    await searchFlightsSemanticTool.execute({ query: 'fails' }, CALL)
+    expect(mockFetch).toHaveBeenCalledTimes(4) // failure was NOT served from cache
   })
 })
 
