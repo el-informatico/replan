@@ -197,3 +197,42 @@ Cross-cutting:
   app shell); served bundle assets/index-CbfTzfiT.js contains ALL ELEVEN
   tool names (grep counts ≥1 each).
 - No AI-attribution trailers in pushed history (re-verified post-push).
+
+---
+
+## Phase 2 closure audit — CLOSED (one code fix)
+Date: 2026-08-31 · Commit: d0bac3c (p2c12) · Docs: docs/reviews/
+{phase2-closure-audit.md, phase2-independent-review.md}
+
+- A1: per-commit Evidence lines quoted + per-tree worktree re-runs of
+  scripts/verify.sh at all 11 p2c commits — every one exit 0 / 4 PASS
+  legs. Capture gap disclosed honestly (piped filters at commit time;
+  commit-message Evidence lines are the contemporaneous record).
+- A2: reviewer's raw report committed verbatim (first time in repo
+  history a review artifact is preserved in-tree) with exact given/
+  not-given context; JSONL-transcript ephemerality disclosed.
+- A3: literal curl|grep outputs pasted — audit's double-quote command
+  returns 0 for all six (minifier emits backtick template literals);
+  corrected pattern returns exactly 1 each; full enumeration shows all
+  11 tool names × exactly 1.
+- A4: Phase 1 open items 3 (README AI-use disclosure — still absent,
+  untouched) and 5 (demo-script turn count vs gates — deliberately
+  untouched, awaiting user; Phase 2 adds three more expected gate
+  tools) re-recorded in current.md WITH their Phase-1 numbering.
+- B1: written separation — D008 (hotel seed+shift) was forced by the
+  dispatch's 11-tool DONE criterion; the tool-count research finding
+  shaped description length only. No causal claim (a)→(b) made or
+  implied going forward.
+- B2 (code, d0bac3c): buildCostBreakdown now surfaces
+  multiple_bookings_detected + superseded_flight_ids when >1 distinct
+  flight is booked (state fact, kinds-independent); total unchanged;
+  cost tool + summary + UI card inherit it; plan §7 amendment 6.
+  Evidence: scripts/verify.sh -> PASS (exit 0); 19 files / 188 tests
+  (+2); pushed, trailer grep clean. Gate caught the tool not spreading
+  the new fields + my test asserting absence on two-booking state.
+- B3: the MIA-taxi→FLL-flight stale cycle is covered by ONE end-to-end
+  test (src/tools/summary.test.ts:100), re-run in isolation: 1 passed.
+  No gap; no new test needed.
+
+Evidence: scripts/verify.sh -> PASS (exit 0) at d0bac3c (19 files /
+188 tests); deploy re-verified after the audit fix (see current.md).
