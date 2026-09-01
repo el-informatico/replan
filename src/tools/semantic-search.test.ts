@@ -70,11 +70,13 @@ describe('search_flights_semantic tool — happy path', () => {
 
 describe('search_flights_semantic tool — empty is valid, never an error', () => {
   it('all scores below the relevance floor -> count 0 with rephrase note', async () => {
+    // 0.58/0.55 = the measured off-topic band (live calibration: garbage
+    // tops out ~0.567, on-topic starts ~0.616) — floor is 0.60.
     mockFetch.mockResolvedValue({
       ok: true,
       hits: 2,
       embed_ms: 90,
-      results: [hit('FL-001', 0.09), hit('FL-002', 0.04)],
+      results: [hit('FL-001', 0.58), hit('FL-002', 0.55)],
     })
     const r = await searchFlightsSemanticTool.execute(
       { query: 'submarine rental' },
@@ -119,7 +121,7 @@ describe('search_flights_semantic tool — hydration guards', () => {
 
   it('caps at 8 rows with a showing note', async () => {
     const many = Array.from({ length: 10 }, (_, i) =>
-      hit(`FL-${String(i + 1).padStart(3, '0')}`, 0.9 - i * 0.05),
+      hit(`FL-${String(i + 1).padStart(3, '0')}`, 0.9 - i * 0.025),
     )
     mockFetch.mockResolvedValue({ ok: true, hits: 10, embed_ms: 60, results: many })
     const r = await searchFlightsSemanticTool.execute(

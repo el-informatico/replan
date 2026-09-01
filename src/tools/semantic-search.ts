@@ -17,13 +17,14 @@ import { getString, isRecord, unknownKeys } from './validate.ts'
 import { logToolCall, registerTool, type WebMcpTool } from './webmcp.ts'
 
 /**
- * Relevance floor: Gemini cosine similarities for on-topic queries run well
- * above this; unrelated text lands near it (calibrated against the live
- * seed in the Phase-4 smoke — see docs/research/convex-vector-preflight.md
- * and the live evidence in agent-memory/progress.md). Below it, "no good
+ * Relevance floor, calibrated against the LIVE index (2026-08-31, prod
+ * deployment, evidence in agent-memory/progress.md): on-topic natural
+ * queries score 0.616–0.694 top-to-8th; off-topic garbage tops out at
+ * 0.561–0.567. Gemini's cosine range is compressed — a naive 0.x floor
+ * never fires. 0.60 separates the two measured bands; below it, "no good
  * match" is a valid empty result, not an error.
  */
-const MIN_SIMILARITY = 0.15
+const MIN_SIMILARITY = 0.6
 const MAX_QUERY_CHARS = 200
 
 export const searchFlightsSemanticTool: WebMcpTool = {

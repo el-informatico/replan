@@ -46,10 +46,12 @@ ACCEPTANCE CRITERIA:
      "Showing N of M" note when the cap truncates. count = Convex match
      count before local hydration skips.
   3. Relevance floor: if every returned score < MIN_SIMILARITY (named
-     constant, calibrated against the live seed, default 0.15), return
-     {ok:true, count:0, results:[], note:"No semantically close flights —
-     rephrase or use search_flights with filters."} — an empty result is a
-     VALID outcome, never an error.
+     constant), return {ok:true, count:0, results:[], note:"No semantically
+     close flights — rephrase or use search_flights with filters."} — an
+     empty result is a VALID outcome, never an error. [Amended 2026-08-31
+     after live calibration: floor = 0.60. Measured on the prod index:
+     on-topic 0.616–0.694, off-topic garbage 0.561–0.567 — Gemini's cosine
+     range is compressed and the drafted 0.15 default could never fire.]
   4. Hydration: rows map back to flights.json by flight_id via the existing
      toSummary/compact projection; a Convex id with no local row is skipped
      and disclosed in the note (dataset drift guard).
