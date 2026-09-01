@@ -4,6 +4,17 @@
 implemented per their own Layer-1 contracts, independently reviewed (8
 findings, all fixed with regression tests), deployed, and live.
 
+**HUMAN VERIFICATION CLOSED — 2026-08-31: the in-app-browser smoke test
+(Phase 0 ping + all five Phase 1 turns) PASSED.** Every turn matched the
+machine-pinned expected output exactly: ping echoed; search_flights
+count=17 with FL-015 $299 leading, price-ascending; hold_reservation
+FL-016 with ttl_minutes=15 and expiry exactly 15 min from call;
+update_constraints 17→14 with FL-015 dropped, the four FLL alternates
+($198/$221/$267/$289) promoted to the front, FL-016's hold surviving, and
+the live UI re-render confirmed; confirm_booking returned
+confirmation_ref="RPLN-FL016". The deployed site is verified working in
+the actual judging environment (ChatGPT Desktop in-app browser).
+
 ## Live state
 
 - Repo: https://github.com/el-informatico/replan — Phase 1 commits
@@ -54,19 +65,53 @@ cost-summary) should assume is in place
 
 ## Open items
 
-1. **Phase 0 in-app-browser verification: CLOSED** — the user confirmed ping
-   was proven end-to-end against ChatGPT Desktop's in-app browser (stated in
-   the Phase 1 dispatch, 2026-08-31). Registration + discovery + invocation
-   all work in the actual judging environment.
-2. **Human in-app-browser check of the FOUR NEW tools (the ONE open
-   verification)** — same session limitation; procedure below.
+1. **Phase 0 in-app-browser verification: CLOSED** — user-confirmed
+   (Phase 1 dispatch, 2026-08-31).
+2. **Phase 1 in-app-browser verification: CLOSED — PASSED 2026-08-31**
+   (details at the top of this file; full script with results below).
 3. (User, non-blocking) AI-use disclosure in the GitHub README.
 4. (Optional polish) Dynamic tool registration (register hold/confirm only
    in matching page states) is a scored "WebMCP Leverage" opportunity
    deliberately deferred — see D006 for the reasoning; revisit only if
    there's slack before the Sep 3 deadline.
+5. **(Planning input, awaiting user decision)** the demo script's turn
+   count vs. the observed confirmation gate — see "Observed" section
+   below; script text deliberately NOT updated without confirmation.
 
-## Phase 1 — open verification (human-run smoke test)
+## Observed (documented fact, 2026-08-31): ChatGPT confirmation gate on
+## write-action tools
+
+During the human-verified smoke test, ChatGPT Desktop's in-app browser
+inserted an extra confirmation turn ("Would you like me to proceed?" → human
+replies "Yes") before executing BOTH transactional tools —
+`hold_reservation` AND `confirm_booking`. The read-only/preference tools
+(`ping`, `search_flights`, `update_constraints`) executed directly with no
+extra turn.
+
+- This is ChatGPT's own per-invocation safety review for non-read-only
+  calls — NOT a bug in our implementation, and NOT controllable from the
+  page (there is no WebMCP API to suppress or customize it).
+- Notably the gate did not map 1:1 onto our `readOnlyHint` annotations:
+  `update_constraints` is annotated `readOnlyHint: false` (it mutates
+  constraint state) yet executed directly — ChatGPT judged per-tool stakes
+  (transactional booking actions vs. preference updates). Single data
+  point; treat as observation, not spec.
+- **Demo-video planning implication**: budget TWO extra human "Yes" turns —
+  one before the hold call, one before the confirm call. A video script
+  written from the six-turn script below should plan ~8 spoken turns, and
+  the pacing around turns 3 and 5 should leave room for the gate.
+- Phase 2 corollary: a future `notify_*` or any booking-ish tool should be
+  EXPECTED to hit the same gate when the agent drives it.
+
+**Flagged discrepancy (deliberately not auto-corrected):** the demo script
+below assumes 5–6 human turns with no confirmation gates. The real
+conversation is ~7–8 turns. The script text is kept as-is pending the
+user's call on whether to bake the two "Yes" turns into it (it changes the
+video shot list). `evals/functional/demo-script.test.ts` asserts TOOL
+OUTPUTS only — no turn-count assertions — so there is nothing to change in
+code or tests; this is purely a script/video-planning input.
+
+## Phase 1 — open verification: CLOSED (PASSED 2026-08-31)
 
 **Path A — ChatGPT Desktop in-app browser (the judging environment).**
 Requires: ChatGPT desktop app, Work/Codex plan, model GPT-5.6 **Sol or
@@ -227,8 +272,17 @@ TROUBLESHOOTING
       status and invocation live.
 
 RECORD THE OUTCOME HERE AFTER RUNNING
-    Path used: A / B — date: ______
-    Turns that matched: ______   Any JSON that differed (paste): ______
+    Path used: A — ChatGPT Desktop in-app browser — date: 2026-08-31
+    Result: PASSED. All five turns matched the documented expected output
+    exactly: Turn 1 ping ✓; Turn 2 count=17, FL-015 $299 first, ascending ✓;
+    Turn 3 FL-016 ttl_minutes=15, expiry exactly 15 min from call ✓;
+    Turn 4 count 17→14, FL-015 dropped, FLL $198/$221/$267/$289 promoted,
+    FL-016 hold survived, live UI re-render ✓; Turn 5
+    confirmation_ref="RPLN-FL016" ✓.
+    Deviations from script: NONE in tool output. One conversational
+    addition — ChatGPT inserted a "proceed?" / "Yes" confirmation turn
+    before BOTH write-action tools (hold_reservation, confirm_booking);
+    read-only tools ran directly. See "Observed" section above.
 ```
 
 Record the outcome in the block above — that closes Phase 1's last
