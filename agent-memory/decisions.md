@@ -42,3 +42,45 @@ immediately on any visit), ADR-0003's static-at-load commitment, and the
 Sep 3 deadline make the churn a bad trade.
 **How applied:** all tools register at mount; revisit only with slack, and
 measure against the held-out eval set (per methodology) if tried.
+
+## D007 — Synthetic hotel + ground-transport datasets (ADR-0005)
+**Date:** 2026-08-31
+**Why:** Phase 2 extends the flow beyond flights; dispatch requires the
+two datasets sized/shaped consistently with the 26-flight conventions and
+documented in docs/domain/. near_airport reuses the flight tools' MIA/FLL
+concept, deliberately independent of city (Aventura corridor), with a
+port-distance invariant keeping geography honest.
+**How applied:** src/data/hotels.json (18 hotels, zones as controlled enum,
+sold_out dates for real filtering power, scenario.original_hotel_reservation
+seed) + src/data/ground-transport.json (fare model: 3 types × 6 routes,
+derived pricing) + validators/tests/docs per ADR-0005.
+
+## D008 — Hotel lifecycle: scenario-seeded reservation, no hold/confirm pair
+**Date:** 2026-08-31
+**Why:** dispatch fixes the tool list at six (11-tool deploy ceiling), yet
+asks for consistency with the flight hold/confirm pattern "if reasonably
+possible" — two extra tools is NOT reasonably possible; upsert semantics
+inside update_hotel_reservation would be name-dishonest.
+**How applied:** store seeds HTL-R001 (original trip's downtown-Miami
+booking, 2 nights); update_hotel_reservation shifts it with flight-tool
+conventions (NOT_FOUND with ids+count, deterministic idempotency,
+cross-tool arrival validation). No hotel hold/TTL — deviation documented
+in ADR-0004 addendum, not silent.
+
+## D009 — Store extension: additive fields on the ADR-0004 singleton
+**Date:** 2026-08-31
+**Why:** ADR-0004's extension clause; one subscription point drives the UI.
+**How applied:** hotelReservations Map (seeded), transportBooking singleton
+(replace-on-rebook — no cancel tool, an error would dead-end the agent),
+notifications log, lastHotelSearch (separate field — LastSearch type
+untouched). resetForTests re-seeds all; clock via now()/nowIso() only.
+
+## D010 — Shared pure trip-breakdown function (domain/trip.ts)
+**Date:** 2026-08-31
+**Why:** calculate_total_cost, generate_itinerary_summary AND the UI's
+running-total card need ONE definition of "the trip total"; two
+implementations would drift.
+**How applied:** pure buildCostBreakdown in src/domain/trip.ts; tools stay
+thin wrappers; budget = stored constraints.maxPriceUsd (never
+caller-supplied, per dispatch); flight cost = latestBooking (active
+itinerary, no double-count of mistaken earlier bookings).
