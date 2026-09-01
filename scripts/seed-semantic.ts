@@ -5,10 +5,13 @@
  * 768 dims — must match convex/schema.ts) and writes convex-seed.jsonl for
  * `npx convex import --table flights`.
  *
- * Run:
+ * Run (IMPORTANT: both CLI commands must target the PROD deployment —
+ * either pass --prod or have .env.local's CONVEX_DEPLOYMENT select it;
+ * reviewer finding 2 — run against dev by default, they would silently
+ * clear/seed the wrong index):
  *   GEMINI_API_KEY=<key> npm run seed:semantic
- *   npx convex run semantic:clearFlights   # only when re-seeding non-empty
- *   npx convex import --table flights convex-seed.jsonl
+ *   npx convex run semantic:clearFlights --prod   # when re-seeding non-empty
+ *   npx convex import --table flights convex-seed.jsonl --prod
  *
  * The key is read from the environment ONLY (never committed; the runtime
  * copy lives in Convex env vars via `npx convex env set`).
@@ -89,7 +92,7 @@ console.log(
       dimensions: DIMENSIONS,
       elapsed_ms: Date.now() - t0,
       sample: rows[0].text.slice(0, 120) + "…",
-      next: "npx convex import --table flights convex-seed.jsonl",
+      next: "npx convex import --table flights convex-seed.jsonl --prod",
     },
     null,
     2,

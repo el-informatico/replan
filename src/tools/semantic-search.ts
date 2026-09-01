@@ -10,7 +10,7 @@
 
 import { loadDataset } from '../domain/flights.ts'
 import { toSummary } from '../domain/search.ts'
-import { nowIso } from '../state/store.ts'
+import { now, nowIso } from '../state/store.ts'
 import { fetchSemanticHits } from '../lib/semantic-client.ts'
 import { MAX_TOOL_RESULTS } from './payload.ts'
 import { getString, isRecord, unknownKeys } from './validate.ts'
@@ -26,6 +26,20 @@ import { logToolCall, registerTool, type WebMcpTool } from './webmcp.ts'
  */
 const MIN_SIMILARITY = 0.6
 const MAX_QUERY_CHARS = 200
+
+/**
+ * 60s memoization of ok:true outcomes, keyed by trimmed query (reviewer
+ * finding 9): the judged demo repeats the same 2-3 canned queries, and
+ * every live call burns free-tier Gemini embed RPM (a live 429 was observed
+ * under burst). Errors are never cached. Wall-clock via the store's
+ * injectable now() so TTL behavior is unit-testable.
+ */
+const CACHE_TTL_MS = 60_000
+const outcomeCache = new Map<string, { at: number; outcome: Record<string, unknown> }>()
+
+export function clearSemanticCacheForTests() {
+  outcomeCache.clear()
+}
 
 export const searchFlightsSemanticTool: WebMcpTool = {
   name: 'search_flights_semantic',
@@ -98,6 +112,11 @@ async function executeSemanticSearch(
     }
   }
 
+  const cached = outcomeCache.get(trimmed)
+  if (cached && now() - cached.at < CACHE_TTL_MS) {
+    return cached.outcome
+  }
+
   const outcome = await fetchSemanticHits(trimmed, signal)
   if (!outcome.ok) {
     return { ok: false, code: outcome.code, error: outcome.error }
@@ -123,7 +142,13 @@ async function executeSemanticSearch(
   const ranked = [...relevant].sort(
     (a, b) => b.similarity_score - a.similarity_score,
   )
+  // Dedupe by flight_id (reviewer finding 1): the Convex index is unique
+  // now, but this keeps the tool's output correct even if a double seed
+  // ever reappears — later duplicates drop silently (same flight).
+  const seen = new Set<string>()
   const hydrated = ranked.flatMap((hit) => {
+    if (seen.has(hit.flight_id)) return []
+    seen.add(hit.flight_id)
     const flight = byId.get(hit.flight_id)
     if (!flight) {
       skipped.push(hit.flight_id)
@@ -147,7 +172,9 @@ async function executeSemanticSearch(
 
   // Notes stay within the 1.5K output budget: the ranked/live marker and
   // the truncation notice swap (never stack) — with the shipped action
-  // limit of 8, a truncation note plus a skip note cannot co-occur.
+  // limit of 8, a truncation note plus a skip note cannot co-occur. The
+  // ranked note only makes sense over a non-empty result set (reviewer
+  // finding 12).
   const noteParts: string[] = []
   if (skipped.length > 0) {
     noteParts.push(
@@ -160,16 +187,18 @@ async function executeSemanticSearch(
     noteParts.push(
       `Showing ${showing.length} of ${hydrated.length} — tighten the query to narrow.`,
     )
-  } else {
+  } else if (showing.length > 0) {
     noteParts.push('Ranked by semantic similarity (live index).')
   }
 
-  return {
+  const result = {
     ok: true,
     count: relevant.length,
     results: showing,
     note: noteParts.join(' '),
   }
+  outcomeCache.set(trimmed, { at: now(), outcome: result })
+  return result
 }
 
 export function registerSearchFlightsSemantic() {

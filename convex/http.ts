@@ -49,15 +49,14 @@ http.route({
       });
     }
     const record = (body ?? {}) as { query?: unknown; limit?: unknown };
-    if (
-      typeof record.query !== "string" ||
-      record.query.trim().length === 0 ||
-      record.query.length > 200
-    ) {
+    // Same semantics as the tool: measure the TRIMMED string, UTF-16 code
+    // units (reviewer finding 15).
+    const rawQuery = typeof record.query === "string" ? record.query.trim() : "";
+    if (rawQuery.length === 0 || rawQuery.length > 200) {
       return respond({
         ok: false,
         code: "INVALID_INPUT",
-        error: "Field \"query\" is required (string, 1-200 chars).",
+        error: "Field \"query\" is required (string, 1-200 chars after trimming).",
       });
     }
     const limit =
@@ -67,7 +66,7 @@ http.route({
 
     try {
       const result = await ctx.runAction(internal.semantic.semanticSearch, {
-        query: record.query,
+        query: rawQuery,
         limit,
       });
       return respond(result);

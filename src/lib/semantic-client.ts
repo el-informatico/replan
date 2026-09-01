@@ -25,11 +25,36 @@ export type SemanticSearchOutcome =
 
 const TIMEOUT_MS = 8000
 
+/**
+ * Test-only endpoint override. vi.stubEnv cannot reach import.meta.env
+ * inside Vite-transformed source modules (vitest loads .env.local into it),
+ * so unit tests drive configuration through this instead — deterministically,
+ * on any machine, with no .env.local and no live network.
+ */
+let endpointOverride: string | null | undefined
+
+export function setEndpointOverrideForTests(v: string | null | undefined) {
+  endpointOverride = v
+}
+
 export function semanticEndpoint(): string | null {
-  const base = import.meta.env.VITE_CONVEX_SITE_URL
-  return typeof base === 'string' && base.length > 0
-    ? `${base.replace(/\/+$/, '')}/api/semantic-search`
-    : null
+  // Guarded: in any context without Vite's env shim this would throw and
+  // violate the module's never-reject contract (reviewer finding 11).
+  try {
+    const baseRaw =
+      endpointOverride !== undefined
+        ? endpointOverride
+        : (import.meta as { env?: Record<string, unknown> }).env
+            ?.VITE_CONVEX_SITE_URL
+    const base = typeof baseRaw === 'string' ? rawTrailingSlashTrim(baseRaw) : null
+    return base && base.length > 0 ? `${base}/api/semantic-search` : null
+  } catch {
+    return null
+  }
+}
+
+function rawTrailingSlashTrim(base: string): string {
+  return base.replace(/\/+$/, '')
 }
 
 export async function fetchSemanticHits(
@@ -92,13 +117,16 @@ export async function fetchSemanticHits(
       embed_ms: typeof b.embed_ms === 'number' ? b.embed_ms : -1,
     }
   } catch (err) {
-    const aborted = signal?.aborted === true
+    const callerAborted = signal?.aborted === true
+    const timedOut = !callerAborted && controller.signal.aborted
     return {
       ok: false,
       code: 'SEMANTIC_SEARCH_UNAVAILABLE',
-      error: aborted
+      error: callerAborted
         ? 'Semantic search call was aborted.'
-        : `Semantic search unreachable: ${String(err)}`,
+        : timedOut
+          ? `Semantic search timed out after ${TIMEOUT_MS} ms — retry, or use search_flights with explicit filters.`
+          : `Semantic search unreachable: ${String(err)}`,
     }
   } finally {
     clearTimeout(timer)
