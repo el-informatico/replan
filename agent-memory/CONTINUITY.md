@@ -333,13 +333,13 @@ proceed?" → human "Yes" turn before executing BOTH transactional tools
 `update_constraints` executed directly.
 
 - The gate did **not** map 1:1 onto `readOnlyHint`: `update_constraints`
-  carries no read-only marking (annotation absent in `src/tools/constraints.ts`;
-  `current.md` phrases it as "annotated false" — either way, NOT advertised
-  read-only) yet ran ungated. ChatGPT judged per-tool stakes (booking/spending
-  actions vs. preference updates). Single data point; treat as observation,
-  not spec. (Verified in code this session: only `ping` has `readOnlyHint:
-  true` and `search_flights` `false`; the three mutating tools carry no
-  annotation.)
+  carries no annotation at all in `src/tools/constraints.ts` — the same
+  "not advertised read-only" category as the two gated tools — yet ran
+  ungated. ChatGPT judged per-tool stakes (booking/spending actions vs.
+  preference updates). Single data point; treat as observation, not spec.
+  (Code fact: only `ping` has `readOnlyHint: true` and `search_flights`
+  `false`; the three mutating tools carry no annotation. `current.md`
+  corrected 2026-08-31 to match.)
 - It is ChatGPT's own per-invocation safety review — NOT controllable from
   the page; no WebMCP API suppresses or customizes it. Not a bug in this
   implementation.
