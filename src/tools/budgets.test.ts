@@ -5,6 +5,7 @@ import { updateConstraintsTool } from './constraints.ts'
 import { holdReservationTool } from './hold.ts'
 import { updateHotelReservationTool } from './hotel-reservation.ts'
 import { searchHotelsTool } from './hotels.ts'
+import { notifyContactTool } from './notify.ts'
 import { pingTool } from './ping.ts'
 import { searchFlightsTool } from './search.ts'
 import { bookGroundTransportTool } from './transport.ts'
@@ -28,6 +29,7 @@ const TOOLS = [
   searchHotelsTool,
   updateHotelReservationTool,
   bookGroundTransportTool,
+  notifyContactTool,
 ]
 
 describe('tool authoring budgets', () => {
@@ -92,6 +94,21 @@ describe('tool authoring budgets', () => {
     expect(
       JSON.stringify(widest).length,
       `search_hotels output: ${JSON.stringify(widest).length} chars`,
+    ).toBeLessThanOrEqual(1500)
+  })
+
+  it('notify_contact output fits the 1.5K budget', async () => {
+    const call = { signal: new AbortController().signal }
+    const notify = await notifyContactTool.execute(
+      {
+        contact: { name: 'María', phone: '+51 987 654 321', relationship: 'sister' },
+        new_arrival_time: '2026-09-13T06:05:00-04:00',
+      },
+      call,
+    )
+    expect(
+      JSON.stringify(notify).length,
+      `notify_contact output: ${JSON.stringify(notify).length} chars`,
     ).toBeLessThanOrEqual(1500)
   })
 })
