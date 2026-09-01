@@ -267,3 +267,51 @@ Date: 2026-08-31 · Commits: a9400b3 (p2c14, README) · p2c15 (script+test)
 
 Evidence: scripts/verify.sh -> PASS (exit 0) at p2c15; 19 files / 192
 tests (+4). Both commits pushed; anchored trailer grep clean.
+
+---
+
+## Phase 4 — Gate 2 live wiring + deploy evidence
+Date: 2026-08-31 · Commits: p4c3..p4c6 (ADR-0006/D011+plan → backend/builder/
+seed → tool+tests → calibration) · Convex project `replan` (free plan),
+prod deployment **resolute-malamute-859** (us-east-1); spare deployment
+calm-mosquito-532 left for dashboard cleanup (no CLI delete).
+
+- **Backend live**: `npx convex deploy` → typecheck PASS, indexes added
+  (`flights.by_embedding (vector) embedding (768 dimensions)`,
+  `flights.by_flight_id`). GEMINI_API_KEY set via `npx convex env set`
+  (value never echoed/committed). Seed: `GEMINI_API_KEY=… npm run
+  seed:semantic` → 26 rows / 768 dims / 2.0s → `npx convex import --table
+  flights` → "Added 26 documents".
+- **Live smoke (prod https://resolute-malamute-859.convex.site/api/
+  semantic-search)**, literal: "cheapest option that leaves at dawn" →
+  0.694 FL-021 | 0.690 FL-026 | 0.689 FL-005 | 0.689 FL-004 | 0.686
+  FL-022 | 0.685 FL-003 | 0.683 FL-001 | 0.682 FL-023 [200, 0.576s];
+  "business class with a bed" → 0.652 FL-008 … 0.616 FL-004 [200,
+  0.464s]; garbage "submarine rental…" → 0.567…0.556 [200, 0.444s] —
+  all below the 0.60 floor → the tool returns the valid-empty result.
+  Calibration basis: on-topic 0.616–0.694 vs garbage 0.556–0.567 (floor
+  sits in the gap). CORS OPTIONS preflight: HTTP 204 + full
+  access-control headers; invalid body → {ok:false, INVALID_INPUT}.
+- **Smoke findings fixed in p4c6**: (1) free-tier embed RPM is REAL —
+  429 global_embed_content_requests_per_minute under burst (the human's
+  Gate-1 concern, confirmed; absorbed by one 1.5s-backoff retry; 4/4
+  clean post-fix). (2) Error codes were lost across the runAction
+  boundary (custom Error fields don't serialize) — action now RETURNS
+  errors-as-data. Known limitation recorded: negation doesn't invert
+  ("I hate flying all night" returns red-eyes) — demo phrasings stay
+  positive.
+- **Vercel wiring (first deploy-time env var in repo history)**:
+  `echo 'https://resolute-malamute-859.convex.site' | npx vercel env add
+  VITE_CONVEX_SITE_URL production --token ~/.vercel-token` → then
+  `npx vercel deploy --prod` (env bakes at build — order matters).
+  `scripts/verify.sh --url https://replan-phi.vercel.app` → PASS
+  (exit 0).
+- **Bundle greps (served assets/index-Bx0q1nTk.js, 265,516 bytes)**:
+  registration sites `name:\`<tool>\`` → all TWELVE names exactly 1 each
+  (13th match is an empty `name:\`\`` minifier artifact, not a tool);
+  `resolute-malamute-859.convex.site` baked exactly 1; **literal
+  GEMINI_API_KEY value: 0 hits** (grep -F, exit 1) — Phase-0
+  leak-absence discipline re-applied.
+
+Evidence: scripts/verify.sh --url → PASS (exit 0) post-deploy; live
+curl outputs above; 21 files / 217 tests green at e620511.
