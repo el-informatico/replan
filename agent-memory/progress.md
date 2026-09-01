@@ -236,3 +236,34 @@ Date: 2026-08-31 · Commit: d0bac3c (p2c12) · Docs: docs/reviews/
 
 Evidence: scripts/verify.sh -> PASS (exit 0) at d0bac3c (19 files /
 188 tests); deploy re-verified after the audit fix (see current.md).
+
+---
+
+## Phase 1 open items 3 + 5 — CLOSED (README disclosure + 11-tool script)
+Date: 2026-08-31 · Commits: a9400b3 (p2c14, README) · p2c15 (script+test)
+
+- **Item 3 (a9400b3):** approved "## AI Assistance" section in README.md
+  verbatim (between Deployed and License; diffed against the approved
+  block — match). Claims pre-verified: zero attribution trailers in full
+  history (anchored grep; the only naive-grep hits are the filename
+  CLAUDE.md and p2c14's own message quoting the pattern), docs/ +
+  agent-memory/ carry the process, increments test-gated.
+- **Item 5 (p2c15):** docs/demo/eleven-tool-demo-script.md — the full
+  eleven-tool narrative, 32 conversational turns (16 HUMAN + 16 AGENT),
+  11 tool calls, 5 confirmation gates marked explicitly (turns 6–7,
+  12–13, 18–19, 22–23, 26–27). demo-script.test.ts extended (+4 tests):
+  document-structure assertions (32 turns numbered 1..32; each tool
+  called exactly once; gated/ungated sets verified within each tool's own
+  turn block) + the scripted sequence executed against the real modules
+  (ping → search 17 → hold 14:15Z → constraints 14/FLL-lead → RPLN-FL016
+  → hotels 6/HT-004 $89 → hotel shift 20:00/total 296 → shuttle
+  RPLN-GT-SHUTTLE-MIA 12.62/dropoff 19:15Z → NTF-001 sms 14:03Z → cost
+  664.62 over 14.62 → summary complete/missing []). No existing
+  assertion changed — Phase 1's three describes still pin their turns;
+  all changes are additions. Duration measured from the doc: ~240 spoken
+  words ≈ 1:36 @150wpm; with tool-execution and gate beats ≈ 2:00–2:45
+  wall-clock — inside the 3:00 Devpost limit.
+- No src/ changes (git diff --stat -- src/ empty) — no redeploy needed.
+
+Evidence: scripts/verify.sh -> PASS (exit 0) at p2c15; 19 files / 192
+tests (+4). Both commits pushed; anchored trailer grep clean.
