@@ -15,11 +15,10 @@ export const generateItinerarySummaryTool: WebMcpTool = {
   name: 'generate_itinerary_summary',
   title: 'Final itinerary receipt',
   description:
-    'One consolidated receipt of the recovery: confirmed flight, hotel ' +
-    'reservation, ground transport, notifications sent, and the running ' +
-    'total vs budget — plus what is still missing. Safe to call at any ' +
-    'point: a partial trip returns status "partial" with a missing list, ' +
-    'never an error. Takes no parameters.',
+    'One consolidated receipt of the recovery: flight, hotel, transport, ' +
+    'notifications, and the total vs budget — plus what is still missing ' +
+    'and which tool books it. Stale legs are flagged. Safe any time: ' +
+    'partial trips return status "partial", never an error. No parameters.',
   inputSchema: {
     type: 'object',
     properties: {},

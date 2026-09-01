@@ -38,10 +38,9 @@ export const bookGroundTransportTool: WebMcpTool = {
   description:
     'Book the airport-to-hotel ground leg once a flight is confirmed. ' +
     'Input: { type, pickup_time }. type: "taxi", "shuttle" (shared, ' +
-    'cheapest), or "rideshare". pickup_time must fall 15 min to 8 h after ' +
-    'the confirmed flight lands; route and price derive from its arrival ' +
-    'airport and the hotel zone. Re-booking replaces the previous leg. ' +
-    'Simulated — no real vehicle.',
+    'cheapest), or "rideshare". Pickup must be 15 min to 8 h after the ' +
+    'flight lands; route and price derive from the arrival airport and ' +
+    'hotel zone. Re-booking replaces. Simulated.',
   inputSchema: {
     type: 'object',
     properties: {

@@ -515,3 +515,49 @@ DONE ONLY WHEN: all AC have passing cited evidence and verify.sh exit 0.
    explicit empty subset `items: []` → `{ok:true, items:[], total_usd:0}`.
    The literal empty snapshot (total 0, within budget) is covered at the
    domain layer (`buildCostBreakdown` on a structural empty snapshot).
+
+## Independent review (2026-08-31, pre-deploy) — 2 majors, 9 minors
+
+Reviewer: isolated agent, diff `d9470e8..HEAD` (src/ + evals/) vs this
+plan's contracts; ran `tsc -b` and `vitest run` itself (both green) and
+verified time-dependent repros by executing the real tool modules.
+Verdict: **do not deploy until findings 1–2 are fixed.** All 11 findings
+fixed in p2c10 with regression tests:
+
+3. **(Major 1) search_hotels exceeded 1.5K on ordinary post-crunch
+   windows** (1555 chars; the budgets test asserted a crunch-narrowed case
+   mislabeled "widest"). Fix: compact row drops `city`/`star`/
+   `rooms_left` (full projection still in the store for the UI); budgets
+   test repointed at the true widest case (Miami 09-14→16: count 11,
+   8 windowed rows) with `showing`/`count` pins so the case can't drift.
+4. **(Major 2 — the Phase-1 "stray state" class, cross-domain)**
+   write-time validation was silently superseded by later flight
+   re-confirmation: a hotel check-in valid when set could end up before
+   the *current* arrival (and its idempotent re-send returned
+   `idempotent:true` over stale state); a ground leg booked from MIA
+   stayed in a "complete" receipt after the traveler switched to an FLL
+   flight. Fix, read-time honesty in the receipt: `composeItinerary`
+   re-derives every entry against the CURRENT booking — per-entry
+   `stale_reason` (hotel vs arrival date; transport vs arrival airport +
+   pickup window), status gains `needs_attention` (stale dominates
+   missing — a wrong booking is more urgent than an unbought leg);
+   `update_hotel_reservation` now runs the arrival check BEFORE the
+   idempotency short-circuit (a now-invalid stored date errors and
+   prompts a real update). `calculate_total_cost` intentionally still
+   sums current state (T9 = sum of state; the honesty lives in the
+   receipt). Regression tests: both reviewer repros + the idempotency
+   reorder, asserted end-to-end.
+5. **(Minors)** T10 `missing` now carries `{kind, book_via}` pointers
+   (AC3's "naming the tool that books it"); composeItinerary's structural
+   empty snapshot tested (AC "missing all three, total 0"); ADR-0005's
+   seeded-reservation timestamps corrected (16:00/11:00 → the JSON's
+   15:00/15:00 — a 43 h span the validator would reject); dataset
+   distribution claims (12/9/3 + 6, zones 6/6/6, 3+3 sold-out) are now
+   test-pinned; widest outputs of calculate_total_cost /
+   update_hotel_reservation / book_ground_transport asserted in their own
+   suites; notify contact fields capped at 100 chars (echoed strings can
+   no longer blow output budgets); budgets.test.ts gained
+   `beforeEach(resetForTests)` (order-independence, honest "fresh state"
+   labels); all six descriptions trimmed to ≤300 chars per §2
+   prescription (a); T8 AC5's no-cross-validation pinned by test;
+   multi-notification summary (count + last) pinned by test.

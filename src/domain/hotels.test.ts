@@ -25,6 +25,21 @@ describe('hotel dataset invariants', () => {
     for (const id of ids) expect(id).toMatch(/^HT-\d{3}$/)
   })
 
+  it('matches the documented distribution exactly (reviewer finding 6: pins the ADR/doc claims)', () => {
+    // ADR-0005: 12 Miami (9 near MIA, 3 near FLL) + 6 Fort Lauderdale.
+    expect(data.hotels.filter((h) => h.city === 'Miami')).toHaveLength(12)
+    expect(data.hotels.filter((h) => h.city === 'Miami' && h.near_airport === 'MIA')).toHaveLength(9)
+    expect(data.hotels.filter((h) => h.city === 'Miami' && h.near_airport === 'FLL')).toHaveLength(3)
+    expect(data.hotels.filter((h) => h.city === 'Fort Lauderdale')).toHaveLength(6)
+    // hotel-dataset.md: zones split 6/6/6.
+    expect(data.hotels.filter((h) => h.zone === 'downtown-miami')).toHaveLength(6)
+    expect(data.hotels.filter((h) => h.zone === 'miami-beach')).toHaveLength(6)
+    expect(data.hotels.filter((h) => h.zone === 'fort-lauderdale')).toHaveLength(6)
+    // Sold-out crunch: three hotels on each of 09-12 and 09-13.
+    expect(data.hotels.filter((h) => h.sold_out.includes('2026-09-12'))).toHaveLength(3)
+    expect(data.hotels.filter((h) => h.sold_out.includes('2026-09-13'))).toHaveLength(3)
+  })
+
   it('scenario.original_hotel_reservation points at a real, seed-safe hotel', () => {
     const r = data.scenario.original_hotel_reservation
     const seeded = data.hotels.find((h) => h.id === r.hotel_id)

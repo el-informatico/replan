@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { getSnapshot, resetForTests, setClockForTests, subscribe } from '../state/store.ts'
+import { confirmBookingTool } from './confirm.ts'
+import { holdReservationTool } from './hold.ts'
 import { notifyContactTool } from './notify.ts'
 
 const CALL = { signal: new AbortController().signal }
@@ -106,6 +108,35 @@ describe('notify_contact — malformed input (errors as data)', () => {
       expect(r['ok']).toBe(false)
       expect(typeof r['error']).toBe('string')
     }
+  })
+
+  it('caps contact fields at 100 chars so echoed strings cannot blow the output budget (reviewer finding 8)', async () => {
+    const long = 'x'.repeat(101)
+    const r = await notifyContactTool.execute(
+      { contact: { phone: long }, new_arrival_time: '2026-09-13T06:05:00-04:00' },
+      CALL,
+    )
+    expect(r['ok']).toBe(false)
+    expect(r['code']).toBe('INVALID_INPUT')
+    expect(r['error'] as string).toContain('100')
+    const okEdge = await notifyContactTool.execute(
+      { contact: { phone: 'x'.repeat(100) }, new_arrival_time: '2026-09-13T06:05:00-04:00' },
+      CALL,
+    )
+    expect(okEdge['ok']).toBe(true)
+  })
+
+  it('does NOT cross-validate the arrival time against flight state (T8 AC5, pinned)', async () => {
+    // Even with a confirmed flight landing 2026-09-12T13:45-04:00, the
+    // traveler may tell a contact any arrival — the tool relays, not judges.
+    await holdReservationTool.execute({ flight_id: 'FL-016' }, CALL)
+    await confirmBookingTool.execute({ flight_id: 'FL-016' }, CALL)
+    const r = await notifyContactTool.execute(
+      { contact: { phone: '+1 305 555 0100' }, new_arrival_time: '2026-09-15T09:00:00-04:00' },
+      CALL,
+    )
+    expect(r['ok']).toBe(true)
+    expect(r['message'] as string).toContain('2026-09-15T09:00:00-04:00')
   })
 
   it('rejects a non-object contact', async () => {

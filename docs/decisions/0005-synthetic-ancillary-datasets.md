@@ -52,12 +52,14 @@ for the search tool.
 
 **`scenario.original_hotel_reservation`** mirrors flights.json's
 `original_booking`: `HTL-R001` at a downtown-Miami hotel (`HT-002`),
-check-in `2026-09-12T16:00:00-04:00`, check-out `2026-09-14T11:00:00-04:00`
+check-in `2026-09-12T15:00:00-04:00`, check-out `2026-09-14T15:00:00-04:00`
 (2 nights) — the booking tied to the cancelled flight. The store seeds
 this reservation (ADR-0004 addendum); `update_hotel_reservation` shifts
 it. The seeded hotel is deliberately never sold out on any date the
 reservation could move to (no cancel/rebook tool exists — a dead end there
-would trap the agent).
+would trap the agent). *(Corrected 2026-08-31, reviewer finding 5: this
+paragraph first stated 16:00→11:00 — a 43 h span the dataset validator
+would reject; the JSON and docs/domain/hotel-dataset.md were always right.)*
 
 **`near_airport` tie-in:** it reuses the MIA/FLL destination concept from
 the flight tools (same codes, same scenario widening) and is deliberately

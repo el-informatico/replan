@@ -21,11 +21,10 @@ export const searchHotelsTool: WebMcpTool = {
   name: 'search_hotels',
   title: 'Search hotels',
   description:
-    'Search hotels for the recovery stay. Required: city — "Miami" or ' +
-    '"Fort Lauderdale". Optional: near_airport ("MIA"/"FLL"), or check_in + ' +
-    'check_out together (ISO 8601 with UTC offset, whole 24 h nights) to ' +
-    'price the stay and skip sold-out hotels. Cheapest first; empty results ' +
-    'are valid — loosen a filter or try the other city.',
+    'Search hotels for the recovery stay. Required: city ("Miami" or ' +
+    '"Fort Lauderdale"). Optional: near_airport ("MIA"/"FLL") and check_in ' +
+    '+ check_out (ISO 8601 with offset, whole nights) to price the stay ' +
+    'and skip sold-out hotels. Cheapest first; empty results are valid.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -135,15 +134,16 @@ async function executeSearchHotels(
   const results = searchHotels(loadHotelsDataset().hotels, filters)
   setLastHotelSearch({ filters, results })
 
+  // Compact projection (reviewer finding 1): city/star/rooms_left stay in
+  // the STORE results (UI renders them) but not the agent payload — the
+  // agent already supplied city, and the post-crunch windowed case must
+  // fit the 1.5K budget.
   const rows = results.slice(0, 8).map((r) => ({
     id: r.id,
     name: r.name,
-    city: r.city,
     near_airport: r.near_airport,
-    star: r.star_rating,
     guest_rating: r.guest_rating,
     price_per_night_usd: r.price_per_night_usd,
-    rooms_left: r.rooms_left,
     ...(r.total_stay_usd !== undefined
       ? { nights: r.nights, total_stay_usd: r.total_stay_usd }
       : {}),
