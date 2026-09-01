@@ -52,3 +52,21 @@ export function compactResults(
     results: rows,
   }
 }
+
+/**
+ * Counting/note half of compactResults for non-flight result lists — the
+ * caller projects and slices its own rows (same note wording, same cap of
+ * MAX_TOOL_RESULTS by convention).
+ */
+export function compactMeta(
+  total: number,
+  showing: number,
+): { count: number; showing: number; note?: string } {
+  return {
+    count: total,
+    showing,
+    ...(total > showing
+      ? { note: `Showing ${showing} of ${total} — tighten filters to narrow.` }
+      : {}),
+  }
+}

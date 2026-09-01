@@ -44,9 +44,11 @@ commit).
 
 Distribution: 12 Miami (9 near MIA, **3 near FLL** — the
 Aventura/Sunny-Isles corridor) + 6 Fort Lauderdale (all near FLL). Price
-range $79–$349/night. Three hotels sold out on 2026-09-12 and one on
+range $79–$349/night. Three hotels sold out on 2026-09-12 and three on
 2026-09-13 (cruise-prep crunch) — sold-out dates give `check_in`/
-`check_out` real filtering power instead of being price inputs only.
+`check_out` real filtering power instead of being price inputs only, and
+make the all-sold-out cut (Miami + near FLL on 09-13) a valid empty result
+for the search tool.
 
 **`scenario.original_hotel_reservation`** mirrors flights.json's
 `original_booking`: `HTL-R001` at a downtown-Miami hotel (`HT-002`),

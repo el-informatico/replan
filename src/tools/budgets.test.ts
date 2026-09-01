@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { confirmBookingTool } from './confirm.ts'
 import { updateConstraintsTool } from './constraints.ts'
 import { holdReservationTool } from './hold.ts'
+import { searchHotelsTool } from './hotels.ts'
 import { pingTool } from './ping.ts'
 import { searchFlightsTool } from './search.ts'
 
@@ -11,6 +12,9 @@ import { searchFlightsTool } from './search.ts'
  * (docs/research/webmcp-tool-authoring-brief.md): ≤500 chars per tool
  * description, ≤150 per parameter description, names within the spec charset
  * and the secure-tools advisory length. A regression here fails verify.sh.
+ *
+ * Phase 2 rule (plan §2): every new tool lands here in its own increment,
+ * and every list-shaped output joins the ≤1.5K assertion below.
  */
 
 const TOOLS = [
@@ -19,6 +23,7 @@ const TOOLS = [
   holdReservationTool,
   updateConstraintsTool,
   confirmBookingTool,
+  searchHotelsTool,
 ]
 
 describe('tool authoring budgets', () => {
@@ -67,6 +72,22 @@ describe('tool authoring budgets', () => {
     expect(
       JSON.stringify(updated).length,
       `update_constraints output: ${JSON.stringify(updated).length} chars`,
+    ).toBeLessThanOrEqual(1500)
+  })
+
+  it('search_hotels output fits the 1.5K budget (windowed search is the widest case)', async () => {
+    const call = { signal: new AbortController().signal }
+    const widest = await searchHotelsTool.execute(
+      {
+        city: 'Miami',
+        check_in: '2026-09-12T15:00:00-04:00',
+        check_out: '2026-09-14T15:00:00-04:00',
+      },
+      call,
+    )
+    expect(
+      JSON.stringify(widest).length,
+      `search_hotels output: ${JSON.stringify(widest).length} chars`,
     ).toBeLessThanOrEqual(1500)
   })
 })

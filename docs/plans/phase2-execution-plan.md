@@ -493,4 +493,16 @@ DONE ONLY WHEN: all AC have passing cited evidence and verify.sh exit 0.
 
 ## 7. Amendments
 
-(none yet — post-review amendments land here, Phase 1 §6 convention.)
+1. **Annotation convention (2026-08-31, p2c2).** §1 said "readOnlyHint:
+   false on every tool that mutates store state". The actual Phase-1
+   convention (verified in src): only `ping` annotates `readOnlyHint:
+   true`, `search_flights` annotates `false`, and the three mutating
+   flight tools carry **no annotations key at all** (absent = mutating).
+   Phase 2 follows the code, not the §1 sentence: `search_hotels`
+   `readOnlyHint: false` (mirrors `search_flights` — writes
+   `lastHotelSearch`); `update_hotel_reservation`, `book_ground_transport`,
+   `notify_contact` omit annotations (mutating, like hold/confirm);
+   `calculate_total_cost` and `generate_itinerary_summary` annotate
+   `readOnlyHint: true` (pure reads, `ping` precedent — they mutate
+   nothing). T8's contract line "readOnlyHint:false" is superseded by
+   this amendment; T9/T10 gain the explicit `true`.
