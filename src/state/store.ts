@@ -88,6 +88,20 @@ export interface TransportBooking {
   bookedAtIso: string
 }
 
+/**
+ * Phase 2 (D009): simulated outbound notifications — what WOULD have been
+ * sent. Append-only; feeds generate_itinerary_summary.
+ */
+export interface SentNotification {
+  notificationId: string
+  channel: 'sms' | 'email'
+  recipientName: string | null
+  recipientTarget: string
+  message: string
+  arrivalTimeIso: string
+  sentAtIso: string
+}
+
 export interface StoreSnapshot {
   holds: Hold[]
   bookings: Booking[]
@@ -96,6 +110,7 @@ export interface StoreSnapshot {
   lastHotelSearch: LastHotelSearch | null
   hotelReservations: HotelReservation[]
   transportBooking: TransportBooking | null
+  notifications: SentNotification[]
 }
 
 function initialConstraints(): Constraints {
@@ -137,6 +152,7 @@ function seedHotelReservation(): HotelReservation {
 const seededReservation = seedHotelReservation()
 hotelReservations.set(seededReservation.reservationId, seededReservation)
 let transportBooking: TransportBooking | null = null
+let notifications: SentNotification[] = []
 
 const listeners = new Set<() => void>()
 
@@ -193,6 +209,7 @@ export function getSnapshot(): StoreSnapshot {
     lastHotelSearch,
     hotelReservations: [...hotelReservations.values()],
     transportBooking,
+    notifications: [...notifications],
   }
 }
 
@@ -273,6 +290,11 @@ export function setTransportBooking(booking: TransportBooking): void {
   notify()
 }
 
+export function addNotification(notification: SentNotification): void {
+  notifications = [...notifications, notification]
+  notify()
+}
+
 /** Test seam: reset to pristine state (constraints re-seeded from scenario). */
 export function resetForTests(): void {
   holds.clear()
@@ -285,6 +307,7 @@ export function resetForTests(): void {
   const seeded = seedHotelReservation()
   hotelReservations.set(seeded.reservationId, seeded)
   transportBooking = null
+  notifications = []
   nowFn = () => Date.now()
   notify()
 }
