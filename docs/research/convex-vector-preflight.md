@@ -166,7 +166,39 @@ developers.openai.com/api/docs/pricing, docs.cohere.com/docs/rate-limits,
 docs.voyageai.com/docs/{embeddings,pricing}, huggingface.co/docs/transformers.js,
 nixiesearch.substack.com/p/benchmarking-api-latency-of-embedding.
 
-## 7. Go/no-go + Gate 2 sizing
+### 6a. Addendum — human's follow-up questions, validated live (2026-08-31)
+
+The human GO'd the phase overall but asked to (1) validate **Groq** (their
+sibling-project key) for the embedding role and (2) survey alternatives with
+rate limits in mind. Results:
+
+1. **Groq: NOT usable for embeddings.** The existing `GROQ_API_KEY` is
+   VALID (`GET /openai/v1/models` → HTTP 200, 14 models) but the account
+   serves **zero embedding models** — all chat/whisper/tts/prompt-guard
+   (sample: `openai/gpt-oss-120b`, `whisper-large-v3`,
+   `canopylabs/orpheus-v1-english`). Official model docs concur (no
+   embeddings documented). A direct `POST /openai/v1/embeddings` probe 404s
+   on model resolution. Using Groq's LLMs to rank the 26 rows instead of
+   vectors would abandon the phase's whole point (live vector DB), so no.
+2. **Gemini free-tier RPM — measured, not assumed:** a deliberate 10-call
+   zero-delay burst through the existing key → **10/10 HTTP 200, zero
+   429s**, 0.44–1.34 s per call from this WSL client. Worst realistic demo
+   load is ~hundreds of queries across the whole event; even community's
+   pessimistic ~1k/day leaves 20×+ headroom. The practical risk is a cold
+   429 only if many judges hammer simultaneously — and provider failures
+   surface as errors-as-data by design in Gate 2.
+3. **Alternatives not previously surveyed — Mistral** (`mistral-embed`,
+   1024d): free tier, no card, ~1 req/s global limit and ~1B tokens/month
+   per community/docs ([usage-limits](https://docs.mistral.ai/admin/billing-usage/usage-limits));
+   exact free numbers no longer published. Viable but requires minting a
+   fresh key today and is unverified in this environment. Cohere/Voyage/
+   OpenAI stand as in §6.
+
+Net: nothing displaces the §6 friction ordering — a working key for
+Gemini already exists here and survived a burst test; every other keyed
+option means minting a new key before integration can start.
+
+
 
 **Recommendation: GO** — the loop is proven, latency is demo-grade, free-tier
 headroom is ~4 orders of magnitude beyond need, and no blocker surfaced.
@@ -179,13 +211,13 @@ Tight but real; descope lever if needed: ship the tool without expanding the
 demo script (judges can still call it free-form).
 
 Open items for the human (blocking Gate 2):
-1. Pick the embedding option (§6) — (a) Gemini is the lowest-friction path
-   given the verified existing key; (c) is the only zero-key, zero-cost,
-   zero-external-dependency path but puts a 22 MB model download in the demo
-   path and showed soft separation.
-2. If (a): reuse the existing `GEMINI_API_KEY` from `~/scratch-tests/.env`,
+1. Pick the embedding option (§6 + §6a) — GO was confirmed 2026-08-31 for
+   the phase overall; the provider pick is the last open sub-decision.
+   Groq ruled out (§6a.1); Gemini's RPM concern was burst-tested clean
+   (§6a.2).
+2. If Gemini: reuse the existing `GEMINI_API_KEY` from `~/scratch-tests/.env`,
    or mint a fresh AI Studio key for replan? (Either stays server-side only.)
-3. Confirm go/no-go overall.
+3. ~~Confirm go/no-go overall.~~ **CONFIRMED GO — 2026-08-31.**
 
 ## 8. Scratch artifacts & cleanup
 
