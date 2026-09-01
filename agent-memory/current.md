@@ -1,82 +1,113 @@
 # Current work
 
-**PHASE 1 (Core flight tools) COMPLETE AND CLOSED — 2026-08-31.** Four tools
-implemented per their own Layer-1 contracts, independently reviewed (8
-findings, all fixed with regression tests), deployed, and live.
-
-**HUMAN VERIFICATION CLOSED — 2026-08-31: the in-app-browser smoke test
-(Phase 0 ping + all five Phase 1 turns) PASSED.** Every turn matched the
-machine-pinned expected output exactly: ping echoed; search_flights
-count=17 with FL-015 $299 leading, price-ascending; hold_reservation
-FL-016 with ttl_minutes=15 and expiry exactly 15 min from call;
-update_constraints 17→14 with FL-015 dropped, the four FLL alternates
-($198/$221/$267/$289) promoted to the front, FL-016's hold surviving, and
-the live UI re-render confirmed; confirm_booking returned
-confirmation_ref="RPLN-FL016". The deployed site is verified working in
-the actual judging environment (ChatGPT Desktop in-app browser).
+**PHASE 2 (Multi-domain expansion) COMPLETE AND CLOSED — 2026-08-31.** Six
+tools implemented per their own Layer-1 contracts (T5–T10 in
+docs/plans/phase2-execution-plan.md), independently reviewed (2 majors +
+9 minors, ALL fixed with regression tests in p2c10), deployed, and live.
+The eleven-tool site is verified by verify.sh --url + bundle grep; the
+in-app-browser human pass is Phase 3's job (below).
 
 ## Live state
 
-- Repo: https://github.com/el-informatico/replan — Phase 1 commits
-  `9f0f125` → `d0d9ab2` (plan+contracts → T1 → T2 → T3 → T4 → authoring
-  pass → UI → review fixes), all verify-gated, no AI-attribution trailers.
-- Site: **https://replan-phi.vercel.app** — production; served bundle
-  contains all five tool registrations (`ping`, `search_flights`,
-  `hold_reservation`, `update_constraints`, `confirm_booking`); `verify.sh
-  --url` exit 0.
-- Tests: 8 files / 73 tests green (unit + `evals/functional/`
-  rebooking-narrative — the scripted agent conversation incl. the T1+T3
-  re-search narrative, error-recovery, and expired-hold loops).
+- Repo: https://github.com/el-informatico/replan — Phase 2 commits
+  `66c2d4d` → p2c10 (plan+contracts+ADR-0005 → T5 → T6 → T7 → T8 → T9 →
+  T10 → UI → functional eval → review fixes), all verify-gated, no
+  AI-attribution trailers.
+- Site: **https://replan-phi.vercel.app** — production (deployment
+  replan-msyxdi6hx); served bundle `assets/index-CbfTzfiT.js` contains
+  ALL ELEVEN tool registrations (5 Phase 1 + `search_hotels`,
+  `update_hotel_reservation`, `book_ground_transport`, `notify_contact`,
+  `calculate_total_cost`, `generate_itinerary_summary`); `verify.sh --url`
+  exit 0.
+- Tests: 19 files / 186 tests green (unit per tool + dataset invariants +
+  4 evals/functional tests incl. the multi-domain narrative chain).
 
-## What Phase 2 (multi-domain: hotel / ground-transport / notification /
-cost-summary) should assume is in place
+## Phase 2 design decisions that set the pattern for anything after it
 
-1. **Tool pattern is fully established** — a Phase 2 tool is: a `WebMcpTool`
-   object in `src/tools/<name>.ts` (description ≤500 chars, param
-   descriptions ≤150, ≤8 compact result rows, `{ok,…}`/`{ok:false,code,
-   error}` envelope, `logToolCall`, registerX() called in App's effect).
-   `src/tools/budgets.test.ts` mechanically enforces the char budgets and
-   the ≤1.5K output budget for listed tools — ADD NEW TOOLS TO ITS `TOOLS`
-   ARRAY (that is the one manual step the pattern requires).
-2. **Validators**: `src/tools/validate.ts` (string/number-bounds/
-   ISO-with-offset incl. real-calendar rejection/unknown-keys). Use them;
-   never hand-roll parsing. Explicit `null` semantics: distinguish
-   "clear" from "not provided" at the tool layer (see constraints.ts).
-3. **State**: `src/state/store.ts` (ADR-0004) — extend with hotel/transport
-   holds etc. via the same Map + lazy-expiry + subscribe pattern; injectable
-   clock (`setClockForTests`) for all time logic, INCLUDING UI countdowns
-   (App uses store `now()`). Reset between test files via
-   `resetForTests()` in beforeEach.
-4. **Search reuse**: `searchFlights(flights, filters)` is pure and takes
-   array-valued `destination` — Phase 2 searches (hotels near port, etc.)
-   should copy the shape: pure domain fn + thin validated tool wrapper +
-   compact payload.
-5. **Cost summary** tool should read from the store (booking(s) + holds) —
-   single subscription point already drives the whole UI.
-6. **Process**: contract before code (per-tool, Layer-1 format — see
-   docs/plans/phase1-execution-plan.md §2); one verified increment = one
-   commit; independent reviewer BEFORE deploy; deploy =
-   `vercel deploy --prod --yes --token "$(cat ~/.vercel-token)"` then
-   `verify.sh --url https://replan-phi.vercel.app` + bundle grep for new
-   tool names; push + trailer re-check every increment.
-7. **Judging environment facts**: budget table + authoring guidance in
-   docs/research/webmcp-tool-authoring-brief.md — re-verify against live
-   Chrome docs before Phase 2 (API is young).
+1. **Hotel lifecycle = scenario-seeded reservation (D008/ADR-0004
+   addendum), NOT a hold/confirm pair.** The tool ceiling is fixed at 11;
+   the original trip's booking seeds as HTL-R001 (Bayside Inn Downtown,
+   2 nights, $296) and update_hotel_reservation shifts it with flight-tool
+   conventions (NOT_FOUND w/ ids+count, deterministic idempotency by
+   instant, check_out shifts preserving nights, cross-tool
+   CHECK_IN_BEFORE_ARRIVAL). No hotel hold/TTL — documented deviation.
+2. **Ground transport = fare model, not a vehicle list (ADR-0005).** 3
+   types × 6 routes (MIA/FLL × 3 hotel zones), prices DERIVED
+   (base+per_km×distance, round2 once). Route is state-derived: pickup
+   location = confirmed flight's last-segment airport; destination = hotel
+   reservation's zone. Singleton booking, re-book REPLACES (no cancel
+   tool → an error would dead-end the agent).
+3. **Read-time honesty (reviewer major 2, p2c10): write-time validation
+   can be superseded by a later flight re-confirmation.**
+   generate_itinerary_summary re-derives hotel + transport entries against
+   the CURRENT booking — per-entry stale_reason + status
+   'needs_attention' (stale dominates missing); update_hotel_reservation
+   checks arrival BEFORE idempotency. calculate_total_cost still sums
+   state by contract. If Phase 3+ adds another cross-tool-anchored item,
+   it needs the same read-time re-derivation + stale flag.
+4. **One trip-total definition (D010)**: src/domain/trip.ts
+   buildCostBreakdown — used by calculate_total_cost,
+   generate_itinerary_summary, AND the UI running-total card. Budget =
+   stored constraints.maxPriceUsd (never caller-supplied); flight =
+   latestBooking (confirmedAt), earlier bookings don't double-count.
+5. **Budget enforcement is per-widest-case**: budgets.test.ts covers TOOLS
+   char budgets (11 entries) + fresh-state outputs; each tool's own suite
+   asserts its WIDEST output ≤1.5K where the fixture lives. When adding a
+   tool, find the true widest case (not just any passing case — reviewer
+   major 1 was exactly that mistake).
+
+## What Phase 3 (in-app-browser human verification of the six tools)
+## should assume
+
+1. **Same pattern as Phase 1's close**: write an
+   evals/functional/demo-script-phase2.test.ts FIRST pinning exact tool
+   outputs (so site drift fails verify.sh), then the human demo script in
+   this file below the Phase 1 one, then run it in ChatGPT Desktop
+   (GPT-5.6 Sol/Terra) or Chrome 149+ with the webmcp-testing flag.
+2. **Expect the confirmation gate** on ALL THREE transactional-ish tools
+   (update_hotel_reservation, book_ground_transport, notify_contact) —
+   budget a "Yes" turn for each; search/cost/summary should run direct
+   (see "Observed" below; single-data-point caveat stands).
+3. **A coherent Phase-3 demo sequence** (state-dependent chains — order
+   matters): rebook flight first (hold+confirm FL-016, arrives MIA
+   2026-09-12T13:45-04:00, $356) → search_hotels Miami/MIA window
+   09-12→14 (count 6 after crunch exclusions — HT-003 and HT-006 sold out
+   on the 12th, HT-009 has no rooms; cheapest first is HT-004 $89) →
+   update_hotel_reservation HTL-R001 to 2026-09-12T20:00-04:00 (check_out
+   shifts to 09-14T20:00, nights 2, total $296; idempotent re-send safe) →
+   book_ground_transport shuttle 14:30 (RPLN-GT-SHUTTLE-MIA, $12.62, ~45
+   min, drop-off computed; taxi→shuttle replace demos replaced_previous) →
+   notify_contact {name, phone} (NTF-001, sms, simulated:true) →
+   calculate_total_cost (356+296+12.62 = 664.62, OVER the $650 seed by
+   14.62 — the narrative moment; update_constraints max_price 700 flips
+   it to within, delta −35.38) → generate_itinerary_summary (complete,
+   missing [], notifications count 1). Optional stale-demo: confirm
+   FL-021 after transport → summary shows needs_attention with a
+   stale_reason pointing at FLL.
+4. **The page now shows**: a live Trip-total card (running total +
+   budget badge, red border when over), hotel results, the seeded/updated
+   hotel reservation, ground transport, and simulated notifications —
+   every tool call re-renders them live.
+5. Research re-verification done 2026-08-31 (plan §2): NO WebMCP API
+   delta; `webmcp.dev` is an unrelated third-party project (trust only
+   webmachinelearning.github.io/webmcp + developer.chrome.com/docs/ai/webmcp
+   + learn.chatgpt.com). 11 tools is at the edge of practitioner-reported
+   selection degradation — descriptions kept ≤300 chars; re-verify docs
+   again before Phase 3.
 
 ## Open items
 
-1. **Phase 0 in-app-browser verification: CLOSED** — user-confirmed
-   (Phase 1 dispatch, 2026-08-31).
-2. **Phase 1 in-app-browser verification: CLOSED — PASSED 2026-08-31**
-   (details at the top of this file; full script with results below).
-3. (User, non-blocking) AI-use disclosure in the GitHub README.
-4. (Optional polish) Dynamic tool registration (register hold/confirm only
-   in matching page states) is a scored "WebMCP Leverage" opportunity
-   deliberately deferred — see D006 for the reasoning; revisit only if
-   there's slack before the Sep 3 deadline.
-5. **(Planning input, awaiting user decision)** the demo script's turn
-   count vs. the observed confirmation gate — see "Observed" section
-   below; script text deliberately NOT updated without confirmation.
+1. **Phase 2 in-app-browser verification: OPEN — Phase 3** (assumptions
+   above; a fresh session should read CONTINUITY.md + this file first).
+2. (User, non-blocking) AI-use disclosure in the GitHub README.
+3. (Optional polish) Dynamic tool registration still deferred (D006) —
+   11 static tools chosen for judge-facing predictability; the scored
+   "WebMCP Leverage" opportunity remains if there's slack before Sep 3.
+4. (Carried, awaiting user decision) demo-script turn-count vs
+   confirmation gate — see "Observed" below; unchanged by Phase 2.
+5. evals/regression/ README still promises per-failure suites; Phase 1+2
+   keep regressions as named tests in colocated suites (convention) —
+   reconcile the README wording when convenient.
 
 ## Observed (documented fact, 2026-08-31): ChatGPT confirmation gate on
 ## write-action tools

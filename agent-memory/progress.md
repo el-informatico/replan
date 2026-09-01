@@ -109,3 +109,91 @@ RPLN-FL016). One documented observation, not a defect: ChatGPT inserts a
 (hold_reservation, confirm_booking) but not before ping / search_flights /
 update_constraints — demo-video planning must budget two extra Yes-turns.
 Full record: agent-memory/current.md ("Observed" + closed outcome block).
+
+---
+
+## Phase 2: Multi-domain expansion — VERIFIED
+Date: 2026-08-31
+Commits: 66c2d4d (plan+contracts T5-T10+ADR-0005+ADR-0004 addendum) →
+0513f97 (T5) → cd6b364 (T6) → 26bc978 (T7) → e849f81 (T8) → 5716271 (T9)
+→ 7871c04 (T10) → d187136 (UI) → 73fa2d7 (functional eval) → da0d390
+(independent-review fixes). Independent review: 2 majors + 9 minors, ALL
+fixed with regression tests in da0d390.
+
+Per-tool evidence:
+
+- **T5 search_hotels** (0513f97, amended da0d390): verify.sh exit 0; 18
+  synthetic hotels (12 Miami 9-MIA/3-FLL + 6 FLL; zones 6/6/6; $79–$349;
+  3+3 sold-out crunch days; port-distance invariant) with
+  validateHotelsDataset [] + distribution pins + discriminating-power
+  tests; city required (UNKNOWN_CITY), near_airport independent of city
+  (UNKNOWN_AIRPORT), check_in/check_out both-or-neither + whole-24h
+  nights, sold-out/rooms filtering, price-asc sort, valid empty result
+  (Miami+near FLL on 09-13), store lastHotelSearch + notify. Review fix:
+  compact row trimmed (city/star/rooms_left out of the agent payload) —
+  the post-crunch windowed case measured 1555 chars vs the 1.5K budget;
+  budgets test repointed at the true widest case (count 11, showing 8).
+- **T6 update_hotel_reservation** (cd6b364, amended da0d390): verify.sh
+  exit 0; scenario-seeded HTL-R001 (D008 — no hotel hold/TTL pair, 11-tool
+  ceiling); NOT_FOUND lists ids+count; deterministic idempotency by
+  instant incl. offset respelling (stored spelling returned, updated_at
+  untouched, no notify on no-op); check_out shifts preserving nights
+  across month boundaries; cross-tool CHECK_IN_BEFORE_ARRIVAL vs
+  latestBooking arrival date (same-day allowed); no-flight accepts any
+  valid date. Review fix: arrival check now runs BEFORE idempotency —
+  re-sending a date a later flight invalidated errors instead of
+  returning idempotent:true over stale state (regression pinned).
+- **T7 book_ground_transport** (26bc978): verify.sh exit 0; fare-model
+  dataset (taxi/shuttle/rideshare × 6 routes, full MIA/FLL × zone
+  coverage, validator-enforced; FLL→downtown ordering shuttle 25.64 <
+  rideshare 65.90 < taxi 95.90); NO_CONFIRMED_FLIGHT points at
+  hold→confirm; pickup window [arrival+15m, arrival+8h] exact at both
+  boundaries; route derived from state (flight last-segment airport +
+  hotel zone); deterministic ref RPLN-GT-<TYPE>-<AIRPORT>; replace
+  semantics with replaced_previous (no cancel tool → no dead ends).
+- **T8 notify_contact** (e849f81, amended da0d390): verify.sh exit 0;
+  simulated only (stated in description AND return note); contact
+  validated at both levels (unknown keys, ≥1 of phone/email, empty
+  strings rejected, null≡absent pinned); NTF-### sequential
+  deterministic; channel sms-if-phone else email; nothing transmitted.
+  Review fix: contact fields capped at 100 chars (echoed strings can no
+  longer blow output budgets); T8 AC5 no-cross-validation pinned by test.
+- **T9 calculate_total_cost** (5716271): verify.sh exit 0; shared pure
+  buildCostBreakdown (D010 — one definition used by tool + T10 + UI
+  card); items enum validated (non-array/unknown/duplicate →
+  INVALID_INPUT); absent/null items = everything booked, NEVER errors
+  (review-fixed: NOT_BOOKED gate applies only to explicit items);
+  NOT_BOOKED names the booking tool; budget = stored maxPriceUsd with
+  within + signed delta, exact boundary tests (equality fits, 1¢ over
+  doesn't); read-only (no notify, snapshot unchanged, asserted);
+  latest-of-two-bookings.
+- **T10 generate_itinerary_summary** (7871c04, amended da0d390):
+  verify.sh exit 0; zero-param; never errors on partial state (fresh →
+  partial + missing w/ book-via pointers; flight-only → missing
+  transport; tool-impossible transport-without-flight tolerated);
+  complete-chain receipt exact + ≤1.5K. Review fixes: read-time honesty —
+  per-entry stale_reason vs the CURRENT booking (hotel before arrival
+  date; transport wrong-airport/out-of-window), status 'needs_attention'
+  (stale dominates missing); missing entries carry {kind, book_via}.
+
+Cross-cutting:
+- UI (d187136): 11 registrations in App's effect; Trip-total running card
+  (over-budget = red border) via the shared breakdown; hotel results,
+  reservation, transport, notifications cards — all live off the single
+  store subscription.
+- Functional eval (73fa2d7): full chain incl. flight precondition,
+  too-early hotel correction, taxi→shuttle replace, notify, over-budget →
+  update_constraints(700) → within (−35.38), complete receipt, store
+  end-state; + UNKNOWN_CITY and NO_CONFIRMED_FLIGHT recovery loops.
+- Independent review (da0d390): reviewer ran tsc + vitest itself (green)
+  and verified repros by executing the real modules; majors = the 1.5K
+  breach + stale cross-tool state (both fixed as above); minors 3–11 all
+  fixed (missing pointers, empty-snapshot test, ADR timestamp correction,
+  distribution pins, widest-output assertions, notify caps, budgets
+  beforeEach reset, ≤300-char descriptions, AC5 + multi-notification
+  pins).
+- Deploy: vercel deploy --prod → replan-msyxdi6hx aliased to
+  https://replan-phi.vercel.app; verify.sh --url PASS exit 0 (HTTP 200,
+  app shell); served bundle assets/index-CbfTzfiT.js contains ALL ELEVEN
+  tool names (grep counts ≥1 each).
+- No AI-attribution trailers in pushed history (re-verified post-push).

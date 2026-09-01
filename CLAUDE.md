@@ -43,11 +43,11 @@ This file is an **index**, not an encyclopedia — follow the pointers.
 
 ## Pointers
 
-- `docs/plans/phase0-execution-plan.md` — current phase contract + research synthesis
+- `docs/plans/phase2-execution-plan.md` — current phase contract + research re-verification
 - `docs/architecture/overview.md` — system shape
 - `docs/architecture/webmcp-integration.md` — registration pattern, API constraints
-- `docs/decisions/` — ADRs (stack choice, layout scoping, WebMCP pattern)
-- `docs/domain/flight-dataset.md` — dataset schema + scenario anchor
+- `docs/decisions/` — ADRs (stack choice, layout scoping, WebMCP pattern, state, datasets)
+- `docs/domain/` — dataset schemas + scenario anchors (flights, hotels, ground transport)
 - `agent-memory/` — current / progress / decisions / failures / lessons
-- `evals/` — functional / regression / e2e / held_out (empty by design until Phase 1)
+- `evals/functional/` — narrative + demo-script evals (regression/e2e/held_out still empty by design)
 - Upstream methodology: `~/projects/ares/docs/agentic-coding-plan.md`
