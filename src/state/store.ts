@@ -13,7 +13,7 @@
  */
 
 import { loadDataset } from '../domain/flights.ts'
-import type { HotelSearchFilters, HotelSummary } from '../domain/hotels.ts'
+import { hotelById, loadHotelsDataset, type HotelSearchFilters, type HotelSummary } from '../domain/hotels.ts'
 import type { FlightSummary, SearchFilters } from '../domain/search.ts'
 
 /** Hold TTL: 15 wall-clock minutes ("simulated" = no real airline involved). */
@@ -52,12 +52,30 @@ export interface LastHotelSearch {
   results: HotelSummary[]
 }
 
+/**
+ * Phase 2 (D008/D009): the trip's hotel reservation(s). Seeded from the
+ * scenario's original booking; no hold/TTL (ADR-0004 Phase-2 addendum).
+ */
+export interface HotelReservation {
+  reservationId: string
+  hotelId: string
+  status: 'booked'
+  checkInIso: string
+  checkOutIso: string
+  nights: number
+  pricePerNightUsd: number
+  totalUsd: number
+  updatedAtIso: string | null
+  source: 'scenario' | 'tool'
+}
+
 export interface StoreSnapshot {
   holds: Hold[]
   bookings: Booking[]
   constraints: Constraints
   lastSearch: LastSearch | null
   lastHotelSearch: LastHotelSearch | null
+  hotelReservations: HotelReservation[]
 }
 
 function initialConstraints(): Constraints {
@@ -78,6 +96,26 @@ const expiredHolds = new Map<string, number>()
 let constraints: Constraints = initialConstraints()
 let lastSearch: LastSearch | null = null
 let lastHotelSearch: LastHotelSearch | null = null
+const hotelReservations = new Map<string, HotelReservation>()
+
+function seedHotelReservation(): HotelReservation {
+  const r = loadHotelsDataset().scenario.original_hotel_reservation
+  const hotel = hotelById(loadHotelsDataset().hotels, r.hotel_id)
+  return {
+    reservationId: r.reservation_id,
+    hotelId: r.hotel_id,
+    status: 'booked',
+    checkInIso: r.check_in,
+    checkOutIso: r.check_out,
+    nights: r.nights,
+    pricePerNightUsd: hotel ? hotel.price_per_night_usd : 0,
+    totalUsd: hotel ? r.nights * hotel.price_per_night_usd : 0,
+    updatedAtIso: null,
+    source: 'scenario',
+  }
+}
+const seededReservation = seedHotelReservation()
+hotelReservations.set(seededReservation.reservationId, seededReservation)
 
 const listeners = new Set<() => void>()
 
@@ -132,6 +170,7 @@ export function getSnapshot(): StoreSnapshot {
     constraints,
     lastSearch,
     lastHotelSearch,
+    hotelReservations: [...hotelReservations.values()],
   }
 }
 
@@ -192,6 +231,16 @@ export function setLastHotelSearch(search: LastHotelSearch): void {
   notify()
 }
 
+export function getHotelReservation(id: string): HotelReservation | null {
+  return hotelReservations.get(id) ?? null
+}
+
+/** Insert or replace a reservation (business logic lives in the tool). */
+export function setHotelReservation(reservation: HotelReservation): void {
+  hotelReservations.set(reservation.reservationId, reservation)
+  notify()
+}
+
 /** Test seam: reset to pristine state (constraints re-seeded from scenario). */
 export function resetForTests(): void {
   holds.clear()
@@ -200,6 +249,9 @@ export function resetForTests(): void {
   constraints = initialConstraints()
   lastSearch = null
   lastHotelSearch = null
+  hotelReservations.clear()
+  const seeded = seedHotelReservation()
+  hotelReservations.set(seeded.reservationId, seeded)
   nowFn = () => Date.now()
   notify()
 }
