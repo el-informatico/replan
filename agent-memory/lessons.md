@@ -68,3 +68,28 @@ ships the feature.
 **How to apply:** when writing a tool against a contract, walk the
 VERIFICATION section line-by-line and map each line to a concrete test
 before claiming done.
+
+## L005 — Preflight a mechanism with a proxy, but never calibrate thresholds from it
+**Date:** 2026-09-01
+**Where:** Phase 4 Gate 1 → Gate 2 (ADR-0006 amendment; p4c6 recalibration).
+
+Gate 1 proved the Convex vector-search loop with a local MiniLM model
+(on-topic cosine 0.29–0.37) — correct for mechanism, and the only option
+before the provider pick. But the initial contract carried a relevance
+floor of 0.15 sitting under MiniLM's band. Production shipped Gemini,
+whose cosine range is compressed (on-topic 0.616–0.694, garbage
+0.556–0.567) — the 0.15 floor could NEVER fire there, so garbage would
+have been returned as matches. The Gate-2 smoke caught it only because it
+deliberately included an off-topic calibration query; the floor was
+recalibrated live to 0.60.
+
+**How to apply:**
+- Score distributions do NOT transfer across embedding providers (or
+  model versions) — never ship a threshold constant derived from a proxy.
+- Structure provider-gated phases as: preflight mechanism with any proxy →
+  provider pick → **provider-specific calibration pass before or
+  immediately after integration**, with on-topic AND off-topic probe
+  queries, before any threshold ships.
+- Make the calibration probes part of the contract's VERIFICATION list so
+  a reviewer/test can fail the phase without them (the Phase-4 smoke's
+  garbage query is what saved this; see ADR-0006 amendment 2026-09-01).
