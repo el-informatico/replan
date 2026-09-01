@@ -82,7 +82,12 @@ VERIFICATION: unit tests — happy path (mocked seam: sorted rows, correct
 CONSTRAINTS: no Phase 0–3 tool implementation changes; flights.json
   untouched; the API key exists ONLY as a Convex env var (npx convex env
   set) — never in repo, .env* committed files, or the bundle; convex/ code
-  is never imported by src/; zero new runtime npm deps.
+  is never imported by src/; zero new browser-bundled npm deps (convex is
+  a devDependency). [Review follow-up: the reviewer-proposed
+  by_flight_id uniqueIndex is NOT available in convex@1.45's schema
+  builder — deploy rejected it with a TypeError. Double-seed defense is
+  layered: convex import refuses existing tables without --append
+  (live-proven) + the tool dedupes flight_id post-sort.]
 DONE ONLY WHEN: all AC have passing cited evidence and verify.sh exit 0.
 ```
 

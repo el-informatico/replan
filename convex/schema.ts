@@ -14,8 +14,11 @@ export default defineSchema({
       vectorField: "embedding",
       dimensions: 768,
     })
-    // uniqueIndex (reviewer finding 1): a re-import without clearFlights
-    // must FAIL LOUDLY here, not silently double every row in search
-    // results.
-    .uniqueIndex("by_flight_id", ["flight_id"]),
+    // No uniqueIndex here: convex@1.45's table builder has no such method
+    // (deploy rejected .uniqueIndex after .vectorIndex — TypeError, live).
+    // Double-seed protection is layered instead: (1) `npx convex import`
+    // REFUSES to import into an existing table without --append/--replace
+    // (live-proven error: "Table flights already exists"); (2) the tool
+    // dedupes flight_id after the similarity sort (semantic-search.ts).
+    .index("by_flight_id", ["flight_id"]),
 });
