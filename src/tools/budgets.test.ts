@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { confirmBookingTool } from './confirm.ts'
 import { updateConstraintsTool } from './constraints.ts'
 import { holdReservationTool } from './hold.ts'
+import { updateHotelReservationTool } from './hotel-reservation.ts'
 import { searchHotelsTool } from './hotels.ts'
 import { pingTool } from './ping.ts'
 import { searchFlightsTool } from './search.ts'
@@ -24,6 +25,7 @@ const TOOLS = [
   updateConstraintsTool,
   confirmBookingTool,
   searchHotelsTool,
+  updateHotelReservationTool,
 ]
 
 describe('tool authoring budgets', () => {
