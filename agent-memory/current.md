@@ -1,29 +1,53 @@
 # Current work
 
-## PHASE 4 (semantic flight search via live Convex vector DB) — Gate 1
-## STOPPED FOR HUMAN DECISION — 2026-08-31
+## PHASE 4 (semantic flight search via live Convex) — COMPLETE AND CLOSED
+## 2026-09-01
 
-Gate 1 preflight is COMPLETE and filed in
-docs/research/convex-vector-preflight.md (sibling recon committed beside it,
-p4c0). Proven end-to-end in ~/scratch-tests/convex-vector-check (throwaway
-free-plan project `replan-vector-preflight`, deployment
-optimistic-alligator-511, US East): vectorIndex schema (384d), 12-row seed,
-scored queries — synthetic-mechanical (in-cluster ~0.89 vs ~0.02) AND real
-semantic via local MiniLM (no key; soft but sensible separation).
-Browser-realistic latency 194–199 ms end-to-end; server_ms 3–23.
-Recommendation: GO. Key API facts for Gate 2: vectorSearch is ACTIONS-ONLY;
-actions have no ctx.db (hydrate via internalQuery); hits are {_id,_score};
-CONVEX_DEPLOYMENT wants dev:<name> form.
+search_flights_semantic is the 12th and final tool, LIVE on
+https://replan-phi.vercel.app (twelve registrations verified in the served
+bundle; GEMINI key value 0 hits). Architecture per ADR-0006/D011: Convex
+free-plan project `replan`, prod deployment **resolute-malamute-859**
+(us-east-1), 26 flights embedded once with gemini-embedding-001 @768d
+(one-time seed via `npm run seed:semantic` + `npx convex import --prod`);
+public `POST /api/semantic-search` httpAction (CORS) → internalAction
+(embed + vectorSearch + hydrate); browser tool uses native fetch
+(VITE_CONVEX_SITE_URL, set in Vercel — the repo's first deploy-time env
+var) and hydrates rows LOCALLY from flights.json (source of truth). Key
+lives only in Convex env vars. Relevance floor MIN_SIMILARITY=0.60
+(live-calibrated: on-topic 0.616–0.694, garbage 0.556–0.567). Independent
+review closed: no majors; findings fixed/disclosed in p4c8 + plan §7.
 
-**BLOCKED ON HUMAN (do not start Gate 2 without these):** (1) embedding
-option pick — (a) Gemini (existing GEMINI_API_KEY in ~/scratch-tests/.env
-VERIFIED working 2026-08-31, free, ~50–300 ms) vs (c) local browser MiniLM
-(zero key/cost, 22 MB first-load in the demo browser, soft separation);
-OpenAI needs a card; Cohere 1k calls/mo; Voyage unbenchmarked; local-in-
-Convex-action ruled out (32 MiB bundle cap). (2) if Gemini: reuse existing
-key or mint fresh. (3) go/no-go. Gate 2 then = ADR-0006/D011 + contract T11
-+ search_flights_semantic + Vercel env wiring + review; sized 1–1.5 days;
-Phase 5 (12-tool demo script) after.
+Operational notes that matter next session:
+- **Free-tier Gemini embed RPM is small**: bursts 429 (live-observed
+  twice). Tool memoizes ok:true outcomes 60 s per query; action retries
+  once after 1.5 s. For the demo video: space semantic queries by ~10 s+
+  and re-verify the canned queries first (plan §6 pre-demo floor re-check).
+- Backend edits are gated by `npx convex deploy`'s typecheck, NOT
+  verify.sh (plan §7); always deploy after touching convex/.
+- Reseed: `npx convex run semantic:clearFlights --prod` then
+  `npx convex import --table flights convex-seed.jsonl --prod` (plain
+  import into an existing table refuses — live-proven; `--replace` also
+  exists).
+- Cleanup pending (dashboard): scratch project replan-vector-preflight
+  (optimistic-alligator-511) and spare deployment calm-mosquito-532.
+
+## What Phase 5 (12-tool demo script + worksheet) should assume
+
+1. Extend docs/demo/eleven-tool-demo-script.md → a 12-tool version AND
+   evals/functional/demo-script.test.ts (its counts — 32 turns, `toBe(11)`,
+   the 11-name list, the ungated list — are machine-pinned and MUST move
+   together; grep for the literal 11s the codebase-analysis listed).
+2. Use the semantic tool's REAL verified examples (live, 2026-09-01):
+   "cheapest option that leaves at dawn" → FL-021 0.717 top (also FL-026,
+   FL-005); "business class with a bed" → FL-008 0.652 top; empty case:
+   garbage phrasing → count 0 with rephrase note. Phrase queries
+   POSITIVELY — negation does not invert ("I hate flying all night"
+   returns red-eyes).
+3. Expect NO ChatGPT confirmation gate (readOnly precedent; single data
+   point caveat).
+4. The page shows the tool via the Tool-call log card (storeless tool —
+   no dedicated results panel); phase-note copy already says "Twelve
+   tools… everything else stays simulated."
 
 ---
 

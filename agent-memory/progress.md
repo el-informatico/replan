@@ -315,3 +315,38 @@ calm-mosquito-532 left for dashboard cleanup (no CLI delete).
 
 Evidence: scripts/verify.sh --url → PASS (exit 0) post-deploy; live
 curl outputs above; 21 files / 217 tests green at e620511.
+
+---
+
+## Phase 4 — independent review + closure
+Date: 2026-09-01 · Commits: ece718b (p4c8, review fixes) · review-fix redeploy
+
+- **Independent review** (fresh-eyes subagent on 63f91cf..a4744db, raw
+  findings disclosed in plan §7 + p4c8 message): NO majors; 9 MINOR + 7
+  NIT. 12 addressed with regression coverage (uniqueIndex attempt → tool
+  dedupe; --prod docs; client tests NEW 7; boundary/rounding/dedupe/cache
+  tool tests; drift-proof budgets fixture; 60s query memoization; timeout
+  wording; env guard; note-over-empty fix; _generated gitignore; pre-demo
+  floor re-check; endpoint trim; plan provenance). Finding 3 DISPUTED
+  with evidence (convex IS a devDependency). One reviewer suggestion
+  unavailable in convex@1.45: `.uniqueIndex` after `.vectorIndex` →
+  deploy TypeError (live); defense = CLI import-refusal (live-proven
+  "Table flights already exists" without --append/--replace) + tool-side
+  dedupe.
+- **Discovered while testing the fixes**: vi.stubEnv cannot reach
+  import.meta.env inside Vite-transformed sources AND vitest loads
+  .env.local — one stubbed-env test silently hit the LIVE endpoint
+  (embed_ms 190). Fixed with a test-only endpoint override
+  (setEndpointOverrideForTests); client tests now hermetic.
+- **Redeploy + re-verify (post-fix)**: convex deploy exit 0; live 429
+  now surfaces with the CORRECT code EMBEDDING_FAILED (runAction fix
+  verified live); padded query "  red-eye cheapest  " → ok:true, FL-021
+  0.717 top (trim fix live); blank → INVALID_INPUT "1-200 chars after
+  trimming". Vercel redeploy (replan-bg9571k8g), verify.sh --url exit 0;
+  fresh bundle assets/index-D6Pri8NM.js: search_flights_semantic
+  registration exactly 1, total 12 tool registrations, GEMINI key value
+  0 hits.
+
+Evidence: scripts/verify.sh -> PASS (exit 0); 22 files / 229 tests (+1
+file, +12 tests over the phase); verify.sh --url -> PASS (exit 0) on the
+final deploy; live curl outputs above. Phase 4 CLOSED.
