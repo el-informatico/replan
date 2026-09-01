@@ -94,3 +94,25 @@ next to eleven "simulated" ones.
   bundle greps + Phase-5 human pass, not by vitest.
 - The Gate-1 scratch project (`replan-vector-preflight`) stays until phase
   close, then is deletable from the Convex dashboard.
+
+## Amendment (2026-09-01) — the preflight-provider gap
+
+Gate 1 validated the vector-index MECHANISM with a local MiniLM model
+(on-topic cosine 0.29–0.37) because the provider pick deliberately came
+after the preflight. The initial T11 contract therefore carried a drafted
+relevance floor of 0.15 — a constant sitting under MiniLM's measured band.
+Production then shipped Gemini (`gemini-embedding-001`), whose cosine range
+is far more compressed: on-topic 0.616–0.694, off-topic garbage
+0.556–0.567. Under that distribution a 0.15 floor can never fire — garbage
+queries would have been presented as matches. It was caught and fixed only
+because the Gate-2 smoke deliberately included an off-topic calibration
+query, forcing a live recalibration to 0.60 (p4c6).
+
+Lesson recorded as L005 (agent-memory/lessons.md): a preflight that runs
+before a provider decision proves the mechanism, not the quality or the
+thresholds — score distributions do not transfer across embedding
+providers. Any future phase that adds a preflight gate in front of a
+live-provider integration must run its quality/threshold calibration
+against the actual chosen provider (post-pick, pre-integration, or as a
+mandatory post-seed calibration step), and must not ship a threshold
+constant derived from a proxy's distribution.
