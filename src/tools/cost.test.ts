@@ -116,6 +116,33 @@ describe('calculate_total_cost — state-dependent edges', () => {
     ])
   })
 
+  it('flags multiple flight bookings without changing the total (audit B2)', async () => {
+    let t = Date.parse('2026-09-12T12:00:00Z')
+    setClockForTests(() => t)
+    await confirmFlight('FL-001')
+    t += 3_600_000
+    await confirmFlight('FL-002')
+
+    const r = await calculateTotalCostTool.execute({}, CALL)
+    expect(r['ok']).toBe(true)
+    expect(r['multiple_bookings_detected']).toBe(true)
+    expect(r['superseded_flight_ids']).toEqual(['FL-001'])
+    const items = r['items'] as { kind: string; id: string; cost_usd: number }[]
+    const flight = items.find((i) => i.kind === 'flight')!
+    expect(flight.id).toBe('FL-002') // latest wins, total unaffected by FL-001
+    expect(r['total_usd']).toBe(flight.cost_usd + 296) // + seeded hotel only
+
+    // The flag is a STATE fact — present even when flight is not requested.
+    const noFlightItems = await calculateTotalCostTool.execute({ items: ['hotel'] }, CALL)
+    expect(noFlightItems['multiple_bookings_detected']).toBe(true)
+
+    // Single booking (fresh state): the flag must be absent, not false-shaped.
+    resetForTests()
+    const single = await calculateTotalCostTool.execute({}, CALL)
+    expect(single['multiple_bookings_detected']).toBeUndefined()
+    expect(single['superseded_flight_ids']).toBeUndefined()
+  })
+
   it('explicitly requested but unbooked kind → NOT_BOOKED pointing at the booking tool', async () => {
     const r = await calculateTotalCostTool.execute({ items: ['transport'] }, CALL)
     expect(r['ok']).toBe(false)
