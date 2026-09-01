@@ -39,6 +39,15 @@ scripts/verify.sh --url URL    # … plus a deploy smoke test
 
 Production (public, no auth): **https://replan-phi.vercel.app**
 
+## AI Assistance
+
+This project was built with AI-assisted development: an AI agent handled
+task planning and implementation under human direction, with every
+increment gated by automated tests before being accepted. No AI-generated
+attribution appears in the commit history; the process and design
+decisions are documented in full in `docs/` and `agent-memory/` for
+anyone who wants to audit it.
+
 ## License
 
 [MIT](./LICENSE)

@@ -99,11 +99,13 @@ in-app-browser human pass is Phase 3's job (below).
 
 1. **Phase 2 in-app-browser verification: OPEN — Phase 3** (assumptions
    above; a fresh session should read CONTINUITY.md + this file first).
-2. **(= Phase 1 open item 3, carried, untouched in Phase 2 and the
-   audit)** AI-use disclosure in the GitHub README — user-owned,
-   non-blocking. Verified 2026-08-31 by the closure audit: README still
-   has NO disclosure statement (grep matches product-description lines
-   only).
+2. **(= Phase 1 open item 3) CLOSED — 2026-08-31, p2c14.** The approved
+   AI-assistance disclosure now sits in README.md (## AI Assistance,
+   between Deployed and License), inserted verbatim — diffed against the
+   approved block: match. Its factual claims were verified BEFORE
+   insertion: full-history trailer grep returns only two `CLAUDE.md`
+   filename matches (zero attribution trailers); docs/ + agent-memory/
+   hold the process record; per-commit test gating is audit-A1-evidenced.
 3. (Optional polish) Dynamic tool registration still deferred (D006) —
    11 static tools chosen for judge-facing predictability; the scored
    "WebMCP Leverage" opportunity remains if there's slack before Sep 3.
