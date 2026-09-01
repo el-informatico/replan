@@ -419,3 +419,48 @@ https://replan-phi.vercel.app -> PASS (exit 0); fresh build emits
 assets/index-D6Pri8NM.js, identical to the served bundle; served bundle
 greps twelve registrations, one per tool. REMAINING: the human run per
 docs/verification/phase5-human-run-worksheet.md.
+
+## Phase 5 follow-up — recording variants + usage guide (docs/tests only)
+Date: 2026-09-01. Commits: p5c3 `96038d0` (variants + drift-guard
+test), p5c4 (usage guide + this memory).
+
+- MEDIUM variant (pasted prompts, the long script's three named trims
+  turns 4/10/22 verbatim, gates answered immediately): 415 words
+  (207H+208A); delivery model 2:21–3:30 single take — under 3:00 only
+  when brisk (best ≈39 s margin, worst ≈30 s over); rehearse-and-time,
+  escalate above ≈2:50.
+- SHORT variant (17 further narration cuts, all with before/after; gate
+  jump-cuts with frame anchors — keep the rendered gate question,
+  remove the Yes-send + pause; inter-turn pass REQUIRED): 333 words
+  (207H+126A); filming 1:48–2:49, final cut ≈1:36–2:04 — under 3:00 by
+  ≈56–84 s, under 2:30 by ≈26–54 s. Gate cuts alone: ≈1:40–2:40 (worst
+  still ~10 s over 2:30). All 36 turns still performed during
+  recording.
+- Drift guard evals/functional/demo-script-variants.test.ts: call-turn
+  vector, tool names/args, all backticked pinned JSON, UNQUOTED turn
+  prose (skeleton equality), human text, gate positions, semantic
+  buffer, narration monotonicity, spoken money/score/FL-id tokens.
+  Agreement table prints with --reporter=verbose (vitest 4 suppresses
+  console otherwise).
+- Independent review (read-only subagent) incl. MUTATION TESTING of the
+  guard: 4 should-fix + 7 nits, all fixed pre-commit. Notable: the
+  reviewer's "M5 narration $-value blind spot" did not reproduce —
+  their sed spanned a line break and never applied; re-run with a real
+  mutation, the value-token guard catches it. Their other two blind
+  spots (unquoted prose, evidence note) were real and are closed by
+  the skeleton check (re-verified: both mutations now FAIL).
+- DEMO-USAGE-GUIDE.md: variant table with durations/margins; ChatGPT
+  Desktop how-to; Turn-0 recommendation (USE for verification, SKIP for
+  the recording take); jump-cut marker convention (spoken "cut" —
+  waveform spike; per-prompt markers JUST BEFORE pasting so they land
+  in removed footage); script-vs-worksheet distinction (LONG for the
+  outstanding verification run, medium/short for video takes after it);
+  pre-flight checklist cross-referencing worksheet P0–P3.
+
+Evidence: scripts/verify.sh -> PASS (exit 0); npx vitest run -> 23
+files / 247 tests; consistency table (literal): call turns
+[2,4,6,10,12,16,20,22,26,30,34,36] and gate turns [6,12,22,26,30]
+identical across all three docs; totals long 426 (207H+219A), medium
+415 (207H+208A), short 333 (207H+126A). Mutation runs: M1/M2/M5b and
+controls M3/M4 all FAIL (caught). Phase 5's remaining step is
+unchanged: the human run, per the worksheet, using the LONG script.

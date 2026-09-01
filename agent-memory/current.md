@@ -44,15 +44,27 @@ untouched as the verified historical record.
   30c9daa and at p5c1; passes with .env.local present (see F006). Fix
   as its own verify-gated increment (src/ change, out of Phase 5
   scope).
+- Recording variants + usage guide (p5c3/p5c4): docs/demo/
+  twelve-tool-demo-script-medium.md (pasted prompts, the three named
+  trims, instant gates; single take ≈2:21–3:30 — fits 3:00 only when
+  brisk), twelve-tool-demo-script-short.md (five gate jump-cuts with
+  frame-precise anchors + tightest narration; final cut ≈1:36–2:04,
+  under 3:00 by ≈56–84 s — the safety-margin video take), and
+  DEMO-USAGE-GUIDE.md (variant table, Turn-0 call — use for the
+  verification run, skip for the recording take). Drift-guarded by
+  evals/functional/demo-script-variants.test.ts (spans + skeleton +
+  spoken-value checks, mutation-tested).
 
 **REMAINING STEP — the human run** (Phase 5's only open item): follow
 the worksheet top-to-bottom (P0 12/12 registered; P1 Sol/Terra or
 Chrome 149+ flag; P2 fresh state; P3 dawn floor re-check expecting
 ≈FL-021 ≈0.69, then wait ≥60 s before Turn 1), then record the outcome
-block verbatim and hand it back. Expect NO gate on
-search_flights_semantic (readOnlyHint: true — a gate there would
-CONTRADICT the annotation). The follow-up session records results in
-agent-memory/ and fixes any real discrepancy as a verify-gated
+block verbatim and hand it back. Use the LONG/live script for this run
+(the guide's recommendation — most faithful to natural-language
+discovery; medium/short are video takes for AFTER verification). Expect
+NO gate on search_flights_semantic (readOnlyHint: true — a gate there
+would CONTRADICT the annotation). The follow-up session records results
+in agent-memory/ and fixes any real discrepancy as a verify-gated
 increment.
 
 ---
