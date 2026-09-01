@@ -7,6 +7,7 @@ import { updateHotelReservationTool } from './hotel-reservation.ts'
 import { searchHotelsTool } from './hotels.ts'
 import { pingTool } from './ping.ts'
 import { searchFlightsTool } from './search.ts'
+import { bookGroundTransportTool } from './transport.ts'
 
 /**
  * Computational enforcement of the authoring budgets from the research brief
@@ -26,6 +27,7 @@ const TOOLS = [
   confirmBookingTool,
   searchHotelsTool,
   updateHotelReservationTool,
+  bookGroundTransportTool,
 ]
 
 describe('tool authoring budgets', () => {

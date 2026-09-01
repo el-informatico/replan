@@ -1,0 +1,65 @@
+{
+  "generated_at": "2026-08-31",
+  "note": "Synthetic ground-transport fare model for the Lima-Miami recovery scenario. Prices are derived (base + per-km x route distance), never stored per combination. Every edit is checked against the invariants in src/domain/transport.ts (validateGroundTransportDataset) by the unit suite.",
+  "scenario": {
+    "name": "Lima-Miami cruise recovery"
+  },
+  "vehicle_types": [
+    {
+      "type": "taxi",
+      "base_fare_usd": 3.5,
+      "per_km_usd": 2.2,
+      "wait_minutes": 5
+    },
+    {
+      "type": "shuttle",
+      "base_fare_usd": 8.0,
+      "per_km_usd": 0.42,
+      "wait_minutes": 25
+    },
+    {
+      "type": "rideshare",
+      "base_fare_usd": 5.0,
+      "per_km_usd": 1.45,
+      "wait_minutes": 8
+    }
+  ],
+  "routes": [
+    {
+      "from_airport": "MIA",
+      "to_zone": "downtown-miami",
+      "distance_km": 11,
+      "typical_minutes": 20
+    },
+    {
+      "from_airport": "MIA",
+      "to_zone": "miami-beach",
+      "distance_km": 17,
+      "typical_minutes": 28
+    },
+    {
+      "from_airport": "MIA",
+      "to_zone": "fort-lauderdale",
+      "distance_km": 42,
+      "typical_minutes": 50
+    },
+    {
+      "from_airport": "FLL",
+      "to_zone": "downtown-miami",
+      "distance_km": 42,
+      "typical_minutes": 55
+    },
+    {
+      "from_airport": "FLL",
+      "to_zone": "miami-beach",
+      "distance_km": 33,
+      "typical_minutes": 40
+    },
+    {
+      "from_airport": "FLL",
+      "to_zone": "fort-lauderdale",
+      "distance_km": 8,
+      "typical_minutes": 15
+    }
+  ]
+}

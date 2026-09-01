@@ -15,6 +15,7 @@
 import { loadDataset } from '../domain/flights.ts'
 import { hotelById, loadHotelsDataset, type HotelSearchFilters, type HotelSummary } from '../domain/hotels.ts'
 import type { FlightSummary, SearchFilters } from '../domain/search.ts'
+import type { TransportType } from '../domain/transport.ts'
 
 /** Hold TTL: 15 wall-clock minutes ("simulated" = no real airline involved). */
 export const HOLD_TTL_MS = 15 * 60_000
@@ -69,6 +70,24 @@ export interface HotelReservation {
   source: 'scenario' | 'tool'
 }
 
+/**
+ * Phase 2 (D009): the trip's single ground leg — airport → hotel zone.
+ * Singleton by design (one trip, one leg); re-booking REPLACES (no cancel
+ * tool exists, an error would dead-end the agent). Seeded null: ground
+ * transport was not pre-arranged on the original trip.
+ */
+export interface TransportBooking {
+  bookingRef: string
+  type: TransportType
+  fromAirport: string
+  toZone: string
+  pickupIso: string
+  estTravelMinutes: number
+  estDropoffIso: string
+  priceUsd: number
+  bookedAtIso: string
+}
+
 export interface StoreSnapshot {
   holds: Hold[]
   bookings: Booking[]
@@ -76,6 +95,7 @@ export interface StoreSnapshot {
   lastSearch: LastSearch | null
   lastHotelSearch: LastHotelSearch | null
   hotelReservations: HotelReservation[]
+  transportBooking: TransportBooking | null
 }
 
 function initialConstraints(): Constraints {
@@ -116,6 +136,7 @@ function seedHotelReservation(): HotelReservation {
 }
 const seededReservation = seedHotelReservation()
 hotelReservations.set(seededReservation.reservationId, seededReservation)
+let transportBooking: TransportBooking | null = null
 
 const listeners = new Set<() => void>()
 
@@ -171,6 +192,7 @@ export function getSnapshot(): StoreSnapshot {
     lastSearch,
     lastHotelSearch,
     hotelReservations: [...hotelReservations.values()],
+    transportBooking,
   }
 }
 
@@ -241,6 +263,16 @@ export function setHotelReservation(reservation: HotelReservation): void {
   notify()
 }
 
+export function getTransportBooking(): TransportBooking | null {
+  return transportBooking
+}
+
+/** Replace the ground leg (D009 singleton semantics). */
+export function setTransportBooking(booking: TransportBooking): void {
+  transportBooking = booking
+  notify()
+}
+
 /** Test seam: reset to pristine state (constraints re-seeded from scenario). */
 export function resetForTests(): void {
   holds.clear()
@@ -252,6 +284,7 @@ export function resetForTests(): void {
   hotelReservations.clear()
   const seeded = seedHotelReservation()
   hotelReservations.set(seeded.reservationId, seeded)
+  transportBooking = null
   nowFn = () => Date.now()
   notify()
 }
