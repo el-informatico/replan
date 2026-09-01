@@ -18,7 +18,7 @@ Turn key: `HUMAN n` / `AGENT n` are conversational turns — **32 total**
 in-app browser inserts its own "shall I proceed?" safety review before a
 transactional tool runs (observed live in Phase 1 on hold/confirm;
 expected on all five). Those gate pairs are real turns — turns 6–7,
-10–11, 18–19, 22–23, 26–27 below — and are budgeted in the count.
+12–13, 18–19, 22–23, 26–27 below — and are budgeted in the count.
 
 ---
 
