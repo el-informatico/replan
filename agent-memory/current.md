@@ -92,10 +92,16 @@ extra turn.
   calls — NOT a bug in our implementation, and NOT controllable from the
   page (there is no WebMCP API to suppress or customize it).
 - Notably the gate did not map 1:1 onto our `readOnlyHint` annotations:
-  `update_constraints` is annotated `readOnlyHint: false` (it mutates
-  constraint state) yet executed directly — ChatGPT judged per-tool stakes
-  (transactional booking actions vs. preference updates). Single data
-  point; treat as observation, not spec.
+  `update_constraints` carries NO annotation at all (in code, only `ping`
+  is `readOnlyHint: true` and `search_flights` `false`; the three mutating
+  tools are unmarked — i.e. not advertised read-only, the same category as
+  the two gated tools) yet executed directly — ChatGPT judged per-tool
+  stakes (transactional booking actions vs. preference updates), not the
+  annotation. Single data point; treat as observation, not spec.
+  [Corrected 2026-08-31: this bullet first said update_constraints "is
+  annotated `readOnlyHint: false`" — imprecise; the code carries no
+  annotation on it. Conclusion unchanged. The pushed d9470e8 commit body
+  has the same imprecision; left as-is.]
 - **Demo-video planning implication**: budget TWO extra human "Yes" turns —
   one before the hold call, one before the confirm call. A video script
   written from the six-turn script below should plan ~8 spoken turns, and
