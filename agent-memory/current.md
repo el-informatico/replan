@@ -68,32 +68,171 @@ cost-summary) should assume is in place
 
 ## Phase 1 — open verification (human-run smoke test)
 
-Pick ONE path:
+**Path A — ChatGPT Desktop in-app browser (the judging environment).**
+Requires: ChatGPT desktop app, Work/Codex plan, model GPT-5.6 **Sol or
+Terra** (Luna has WebMCP disabled).
 
-**Path A — ChatGPT in-app browser (the judging environment).** Requires
-ChatGPT desktop app, Work/Codex plan, model GPT-5.6 **Sol or Terra** (Luna
-has WebMCP disabled).
+**Path B — Chrome 149+ with `chrome://flags/#enable-webmcp-testing`**
+enabled (restart after setting). Same turns below via the side-panel agent.
+Path B additionally gives you DevTools (see troubleshooting note).
 
-1. Open the in-app browser → `https://replan-phi.vercel.app`
-2. Page must list five tools as `registered` in the **Agent tools** card.
-3. Send, in order (the demo narrative):
-   - `My Lima→Miami flight was cancelled. What tools does this page give you, and what can you do for me?`
-   - `Search flights to Miami — I need to arrive before 3pm Miami time tomorrow, max 4 hour layover.`
-   - `Actually my budget is $300 max. Update my constraints.` → page's Active constraints panel must show $300 AND results must re-filter live.
-   - `I'd rather fly overnight.` → preferred_time ordering.
-   - `Hold the best option.` → Held seats card with a live countdown.
-   - `Book it.` → Reservation confirmed card with an RPLN-… reference.
-4. Expected tool results: `{"ok":true,…}` shapes per
-   evals/functional/rebooking-narrative.test.ts; every call appears in the
-   Tool-call log as it happens.
+The full script below is machine-verified by
+`evals/functional/demo-script.test.ts` — if the site's code drifts, that
+test fails verify.sh before the script's numbers go stale.
 
-**Path B — Chrome 149+ with `chrome://flags/#enable-webmcp-testing`**, same
-conversation via the side-panel agent, or the "Model Context Tool Inspector"
-extension (list tools, execute `search_flights` with
-`{"destination":"MIA"}`).
+---
 
-Record the outcome (which path, what matched, paste any JSON that differs)
-under this heading — that closes Phase 1's last verification gap.
+### In-app-browser demo script — five tools
+
+```
+URL
+    https://replan-phi.vercel.app
+
+SETUP
+    Nothing to configure on the site. Open the URL, then start the chat.
+    First message asks ChatGPT to discover the tools itself — that IS the
+    WebMCP check (no manifest, no refresh: discovery is automatic on a
+    WebMCP-capable browser).
+    Before turn 1, glance at the page: the "Agent tools" card must list
+    FIVE tools with status "registered":
+    ping, search_flights, hold_reservation, update_constraints,
+    confirm_booking.
+    (If any say "unavailable", stop — see troubleshooting.)
+
+TURN 1 — discovery + ping (warm-up)
+    Type:  My flight was cancelled and I'm stranded. What tools does this
+           page give you? Call ping with echo set to "ready" to check the
+           connection.
+    Expect ChatGPT to name the five tools, then call ping.
+    Tool output (exact):
+    {"ok":true,"pong":true,"echo":"ready","received_at_utc":"<now, ISO>"}
+    Page: a "ping" entry appears in the Tool-call log the moment it runs.
+
+TURN 2 — search_flights (real constraints, non-empty result)
+    Type:  Search flights to Miami. I must arrive before 3pm Miami time
+           tomorrow (Sep 13), and I won't tolerate more than a 4-hour
+           layover.
+    Tool call: search_flights {destination:"MIA",
+               arrive_before:"2026-09-13T15:00:00-04:00",
+               max_layover_hours:4}
+    Tool output (exact shape and values):
+    {"ok":true,"count":17,"showing":8,
+     "note":"Showing 8 of 17 — tighten filters to narrow.",
+     "results":[
+       {"id":"FL-015","airline":"AV","route":"LIM→MIA (1-stop)",
+        "departs":"2026-09-12T11:20:00-05:00",
+        "arrives":"2026-09-12T22:00:00-04:00","price_usd":299},
+       {"id":"FL-017", ... "price_usd":318},
+       {"id":"FL-010", ... "price_usd":329},
+       {"id":"FL-016", ... "price_usd":356},
+       {"id":"FL-009", ... "price_usd":387},
+       {"id":"FL-014", ... "price_usd":403},
+       {"id":"FL-013", ... "price_usd":441},
+       {"id":"FL-007", ... "price_usd":449}]}
+    Pass check: count is EXACTLY 17; first row is FL-015 at $299; rows are
+    price-ascending. Page: Results card shows 17 flights.
+
+TURN 3 — hold_reservation (on a real id from turn 2)
+    Type:  Hold FL-016 for me — the $356 Copa one via Panama.
+    Tool output (exact):
+    {"ok":true,"flight_id":"FL-016",
+     "hold_expires_at":"<now + 15 minutes, ISO>",
+     "ttl_minutes":15,
+     "note":"Simulated hold (no backend): expires after 15 minutes
+            wall-clock and does not survive a page reload. Confirm with
+            confirm_booking before it lapses."}
+    Pass check: ttl_minutes is 15 and hold_expires_at is 15 minutes after
+    the current time (count it on your watch). Page: "Held seats" card
+    appears showing FL-016 with a live mm:ss countdown; FL-016's row in
+    Results gets a "held" badge.
+
+TURN 4 — update_constraints (THE narrative moment)
+    Type:  Change of plans — no layover over 2 hours, that's firm. Update
+           my constraints and show me what's left.
+    Tool call: update_constraints {max_layover_hours:2}
+    Tool output (exact):
+    {"ok":true,
+     "constraints":{"destination_airports":["MIA","FLL"],
+       "arrive_before":"2026-09-13T15:00:00-04:00",
+       "max_price_usd":650,"max_layover_hours":2,
+       "preferred_time":null},
+     "count":14,"showing":8,
+     "note":"Showing 8 of 14 — tighten filters to narrow.",
+     "results":[
+       {"id":"FL-021","airline":"NK","route":"LIM→FLL (nonstop)",
+        "departs":"2026-09-12T23:30:00-05:00",
+        "arrives":"2026-09-13T06:05:00-04:00","price_usd":198},
+       {"id":"FL-022", ... "price_usd":221},
+       {"id":"FL-023", ... "price_usd":267},
+       {"id":"FL-024", ... "price_usd":289},
+       {"id":"FL-010", ... "price_usd":329},
+       {"id":"FL-016", ... "price_usd":356},
+       {"id":"FL-009", ... "price_usd":387},
+       {"id":"FL-014", ... "price_usd":403}]}
+    BEFORE/AFTER — the concrete, checkable difference:
+      count 17 → 14
+      FL-015 ($299, via SJO, 220-min layover) was the CHEAPEST in turn 2 —
+        it is GONE now (layover cap 120 min).
+      Four Fort Lauderdale (FLL) alternates now LEAD the list at $198/$221/
+        $267/$289 — the scenario widened to both airports, so the cheapest
+        option flipped from a 1-stop MIA flight to an FLL nonstop.
+      Still-present hold: FL-016 survives the tightening (65-min layover).
+    Page: the Active constraints panel flips to "max layover 2 h" and the
+    Results card re-renders live — this is the demo moment.
+
+TURN 5 — confirm_booking (on the held flight)
+    Type:  Book FL-016, the one you're holding.
+    Tool output (exact):
+    {"ok":true,"status":"confirmed","confirmation_ref":"RPLN-FL016",
+     "confirmed_at":"<now, ISO>",
+     "flight":{"id":"FL-016","airline_code":"CM",
+       "route":"LIM→MIA (1-stop)",
+       "depart_iso":"2026-09-12T04:05:00-05:00",
+       "arrive_iso":"2026-09-12T13:45:00-04:00",
+       "duration_minutes":520,"stops":1,
+       "total_layover_minutes":65,"price_usd":356,"cabin":"economy",
+       "seats_left":4,"refundable":false,
+       "tags":["one-stop","tight-connection"],
+       "segments":[
+         {"flight_number":"CM 800","from":"LIM","to":"PTY",
+          "depart_iso":"2026-09-12T04:05:00-05:00",
+          "arrive_iso":"2026-09-12T08:15:00-05:00"},
+         {"flight_number":"CM 339","from":"PTY","to":"MIA",
+          "depart_iso":"2026-09-12T09:20:00-05:00",
+          "arrive_iso":"2026-09-12T13:45:00-04:00"}]},
+     "price_usd":356,"cabin":"economy"}
+    Pass check: confirmation_ref is EXACTLY "RPLN-FL016" (deterministic).
+    Page: the "Held seats" card disappears and a green "Reservation
+    confirmed ✓" card appears with RPLN-FL016, the segment list, and $356.
+
+OPTIONAL TURN 6 — idempotency
+    Type:  Book FL-016 again.
+    Tool output: identical to turn 5 plus "idempotent":true — same
+    confirmation_ref, same confirmed_at, no second booking.
+
+TROUBLESHOOTING
+    - A tool shows "unavailable" on the page → document.modelContext is
+      missing: not a WebMCP browser, not Sol/Terra, or non-secure context
+      (the URL above is HTTPS, so it's the browser/model).
+    - A tool call silently does nothing → in ChatGPT, check the address-bar
+      "Site tools" indicator and Settings → Browser → Permissions →
+      Enable site tools; each invocation gets a safety review.
+    - Chrome (Path B) only: open DevTools → Console on the page tab. The
+      registrar logs registration failures prefixed "[webmcp]" (e.g.
+      "[webmcp] registerTool(<name>) failed:" with the DOMException). Any
+      red [webmcp] line at load = registration problem; no [webmcp] lines
+      + "registered" cards = healthy.
+    - ChatGPT's in-app browser has no DevTools — rely on the page's own
+      cards (Agent tools / Tool-call log), which render every registration
+      status and invocation live.
+
+RECORD THE OUTCOME HERE AFTER RUNNING
+    Path used: A / B — date: ______
+    Turns that matched: ______   Any JSON that differed (paste): ______
+```
+
+Record the outcome in the block above — that closes Phase 1's last
+verification gap.
 
 ## Session environment notes (carry forward)
 
