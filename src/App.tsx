@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react'
 
+import { buildCostBreakdown } from './domain/trip.ts'
 import type { FlightSummary } from './domain/search.ts'
+import { registerCalculateTotalCost } from './tools/cost.ts'
 import { registerConfirmBooking } from './tools/confirm.ts'
 import { registerUpdateConstraints } from './tools/constraints.ts'
+import { registerUpdateHotelReservation } from './tools/hotel-reservation.ts'
+import { registerSearchHotels } from './tools/hotels.ts'
 import { registerHoldReservation } from './tools/hold.ts'
+import { registerNotifyContact } from './tools/notify.ts'
 import { registerPing } from './tools/ping.ts'
 import { registerSearchFlights } from './tools/search.ts'
+import { registerGenerateItinerarySummary } from './tools/summary.ts'
+import { registerBookGroundTransport } from './tools/transport.ts'
 import {
   subscribeToolLog,
   type ToolLogEntry,
@@ -34,6 +41,12 @@ export default function App() {
       registerHoldReservation(),
       registerUpdateConstraints(),
       registerConfirmBooking(),
+      registerSearchHotels(),
+      registerUpdateHotelReservation(),
+      registerBookGroundTransport(),
+      registerNotifyContact(),
+      registerCalculateTotalCost(),
+      registerGenerateItinerarySummary(),
     ]).then((all) => {
       if (!cancelled) setStatuses(all)
     })
@@ -70,6 +83,8 @@ export default function App() {
       {snap.bookings.length > 0 && (
         <ItineraryCard booking={snap.bookings[snap.bookings.length - 1]!} />
       )}
+
+      <TripTotalCard snap={snap} />
 
       <section aria-label="Tool registration status" className="card">
         <h2>Agent tools</h2>
@@ -157,6 +172,84 @@ export default function App() {
         )}
       </section>
 
+      {snap.lastHotelSearch !== null && (
+        <section aria-label="Hotel results" className="card">
+          <h2>Hotel results</h2>
+          <p className="muted">
+            {snap.lastHotelSearch.results.length} hotel
+            {snap.lastHotelSearch.results.length === 1 ? '' : 's'} · cheapest
+            first · from search_hotels
+          </p>
+          <ul className="flight-list">
+            {snap.lastHotelSearch.results.map((h) => (
+              <li key={h.id} className="flight">
+                <div className="flight-main">
+                  <span className="tool-name">{h.id}</span>
+                  <span className="flight-route">{h.name}</span>
+                  <span className="badge">{h.near_airport}</span>
+                </div>
+                <div className="flight-detail">
+                  {h.city} · {h.zone} · {h.star_rating}★ · {h.guest_rating} ·{' '}
+                  {h.rooms_left} room{h.rooms_left === 1 ? '' : 's'} left
+                  {h.total_stay_usd !== undefined
+                    ? ` · $${h.total_stay_usd} for ${h.nights} night${h.nights === 1 ? '' : 's'}`
+                    : ''}
+                </div>
+                <div className="flight-detail flight-price">
+                  ${h.price_per_night_usd}/night
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {snap.hotelReservations.length > 0 && (
+        <section aria-label="Hotel reservation" className="card">
+          <h2>Hotel reservation</h2>
+          {snap.hotelReservations.map((r) => (
+            <HotelReservationLine key={r.reservationId} reservation={r} />
+          ))}
+          <p className="muted">
+            Seeded from the original trip; shifted live via
+            update_hotel_reservation.
+          </p>
+        </section>
+      )}
+
+      {snap.transportBooking !== null && (
+        <section aria-label="Ground transport" className="card">
+          <h2>Ground transport</h2>
+          <p>
+            <span className="tool-name">{snap.transportBooking.bookingRef}</span>{' '}
+            {snap.transportBooking.type} · {snap.transportBooking.fromAirport} →{' '}
+            {snap.transportBooking.toZone} · ${snap.transportBooking.priceUsd}
+          </p>
+          <p className="muted">
+            pickup {snap.transportBooking.pickupIso} · ~
+            {snap.transportBooking.estTravelMinutes} min · drop-off{' '}
+            {snap.transportBooking.estDropoffIso}
+          </p>
+        </section>
+      )}
+
+      {snap.notifications.length > 0 && (
+        <section aria-label="Notifications sent" className="card">
+          <h2>Notifications (simulated)</h2>
+          <ul className="hold-list">
+            {snap.notifications.map((n) => (
+              <li key={n.notificationId} className="hold">
+                <span className="tool-name">{n.notificationId}</span>
+                <span>
+                  {n.channel} → {n.recipientTarget}
+                </span>
+                <span className="muted">{n.sentAtIso}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section aria-label="Live tool-call log" className="card">
         <h2>Tool-call log</h2>
         {log.length === 0 ? (
@@ -175,10 +268,10 @@ export default function App() {
       </section>
 
       <p className="phase-note">
-        Phase 1: flight tools live — search_flights, hold_reservation,
-        update_constraints, confirm_booking (+ the Phase 0 ping smoke test).
-        Hotels, ground transport, notifications and cost summary arrive in
-        later phases.
+        Phase 2: the full recovery flow is live — flight rebooking (Phase 1)
+        plus search_hotels, update_hotel_reservation, book_ground_transport,
+        notify_contact, calculate_total_cost, and generate_itinerary_summary.
+        Eleven tools in total (+ the Phase 0 ping smoke test).
       </p>
     </main>
   )
@@ -253,4 +346,61 @@ function countdown(expiresAt: number): string {
   const m = Math.floor(ms / 60_000)
   const s = Math.floor((ms % 60_000) / 1000)
   return `${m}:${String(s).padStart(2, '0')} left`
+}
+
+/** Running total — the grocery-demo pattern: recomputed live from the store
+ *  via the same shared breakdown the tools use (D010). */
+function TripTotalCard({ snap }: { snap: StoreSnapshot }) {
+  const breakdown = buildCostBreakdown(snap)
+  const over = !breakdown.budget.within_budget
+  return (
+    <section aria-label="Trip running total" className={`card ${over ? 'card-over-budget' : ''}`}>
+      <h2>Trip total</h2>
+      <ul className="total-list">
+        {breakdown.items.map((i) => (
+          <li key={`${i.kind}-${i.id}`} className="total-line">
+            <span>
+              <span className="tool-name">{i.kind}</span> {i.description}
+            </span>
+            <span className="flight-price">${i.cost_usd}</span>
+          </li>
+        ))}
+        {breakdown.items.length === 0 && (
+          <li className="total-line muted">Nothing booked yet.</li>
+        )}
+      </ul>
+      <p className={`total-line total-sum ${over ? 'total-over' : 'total-under'}`}>
+        <span>
+          ${breakdown.total_usd} of ${breakdown.budget.max_price_usd} budget
+        </span>
+        <span className={`badge ${over ? 'badge-held' : 'badge-booked'}`}>
+          {over
+            ? `$${breakdown.budget.delta_usd} over`
+            : `$${-breakdown.budget.delta_usd} left`}
+        </span>
+      </p>
+      <p className="muted">
+        Live via calculate_total_cost’s breakdown — budget is the stored
+        max-price constraint (update_constraints).
+      </p>
+    </section>
+  )
+}
+
+function HotelReservationLine({
+  reservation,
+}: {
+  reservation: StoreSnapshot['hotelReservations'][number]
+}) {
+  return (
+    <p>
+      <span className="tool-name">{reservation.reservationId}</span>{' '}
+      {reservation.hotelId} · check-in {reservation.checkInIso} · check-out{' '}
+      {reservation.checkOutIso} · {reservation.nights} night
+      {reservation.nights === 1 ? '' : 's'} · ${reservation.totalUsd}
+      {reservation.updatedAtIso !== null && (
+        <span className="muted"> · updated {reservation.updatedAtIso}</span>
+      )}
+    </p>
+  )
 }
