@@ -235,3 +235,39 @@ h2 {
   font-size: 0.85rem;
   opacity: 0.85;
 }
+
+/* --- trip total / hotels / transport (Phase 2) --- */
+
+.total-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.total-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
+  padding: 0.3rem 0;
+}
+
+.total-sum {
+  border-top: 1px solid light-dark(#d0d7de, #30363d);
+  margin-top: 0.35rem;
+  padding-top: 0.5rem;
+  font-weight: 700;
+}
+
+.total-over {
+  color: light-dark(#cf222e, #ff7b72);
+}
+
+.total-under {
+  color: light-dark(#1a7f37, #4ec9b0);
+}
+
+.card-over-budget {
+  border-color: light-dark(#cf222e, #ff7b72);
+  border-width: 2px;
+}
