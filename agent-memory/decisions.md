@@ -84,3 +84,18 @@ implementations would drift.
 thin wrappers; budget = stored constraints.maxPriceUsd (never
 caller-supplied, per dispatch); flight cost = latestBooking (active
 itinerary, no double-count of mistaken earlier bookings).
+
+## D011 — Live Convex vector search: the one backend exception (ADR-0006)
+**Date:** 2026-08-31
+**Why:** Phase-4 dispatch asks for real semantic flight search via a live
+vector DB for the judges; human confirmed GO after the Gate-1 preflight
+(docs/research/convex-vector-preflight.md — loop proven, 194–199 ms
+end-to-end) and picked Gemini gemini-embedding-001 with the existing
+verified key.
+**How applied:** ONE tool, search_flights_semantic (T11), backed by a
+free-plan Convex project; flights.json stays the source of truth (Convex =
+derived index, rows hydrated locally by flight_id); 768-dim embeddings,
+key lives only in Convex env vars (bundle-grepped for absence); public
+httpAction route + native fetch = zero new runtime deps; tool count
+11→12 on explicit human instruction (D006 premise revised). ADR:
+`docs/decisions/0006-live-convex-semantic-search.md`.
