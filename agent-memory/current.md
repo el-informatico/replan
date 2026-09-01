@@ -1,5 +1,32 @@
 # Current work
 
+## PHASE 4 (semantic flight search via live Convex vector DB) — Gate 1
+## STOPPED FOR HUMAN DECISION — 2026-08-31
+
+Gate 1 preflight is COMPLETE and filed in
+docs/research/convex-vector-preflight.md (sibling recon committed beside it,
+p4c0). Proven end-to-end in ~/scratch-tests/convex-vector-check (throwaway
+free-plan project `replan-vector-preflight`, deployment
+optimistic-alligator-511, US East): vectorIndex schema (384d), 12-row seed,
+scored queries — synthetic-mechanical (in-cluster ~0.89 vs ~0.02) AND real
+semantic via local MiniLM (no key; soft but sensible separation).
+Browser-realistic latency 194–199 ms end-to-end; server_ms 3–23.
+Recommendation: GO. Key API facts for Gate 2: vectorSearch is ACTIONS-ONLY;
+actions have no ctx.db (hydrate via internalQuery); hits are {_id,_score};
+CONVEX_DEPLOYMENT wants dev:<name> form.
+
+**BLOCKED ON HUMAN (do not start Gate 2 without these):** (1) embedding
+option pick — (a) Gemini (existing GEMINI_API_KEY in ~/scratch-tests/.env
+VERIFIED working 2026-08-31, free, ~50–300 ms) vs (c) local browser MiniLM
+(zero key/cost, 22 MB first-load in the demo browser, soft separation);
+OpenAI needs a card; Cohere 1k calls/mo; Voyage unbenchmarked; local-in-
+Convex-action ruled out (32 MiB bundle cap). (2) if Gemini: reuse existing
+key or mint fresh. (3) go/no-go. Gate 2 then = ADR-0006/D011 + contract T11
++ search_flights_semantic + Vercel env wiring + review; sized 1–1.5 days;
+Phase 5 (12-tool demo script) after.
+
+---
+
 **PHASE 2 (Multi-domain expansion) COMPLETE AND CLOSED — 2026-08-31.** Six
 tools implemented per their own Layer-1 contracts (T5–T10 in
 docs/plans/phase2-execution-plan.md), independently reviewed (2 majors +
