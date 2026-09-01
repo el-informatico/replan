@@ -13,6 +13,7 @@
  */
 
 import { loadDataset } from '../domain/flights.ts'
+import type { HotelSearchFilters, HotelSummary } from '../domain/hotels.ts'
 import type { FlightSummary, SearchFilters } from '../domain/search.ts'
 
 /** Hold TTL: 15 wall-clock minutes ("simulated" = no real airline involved). */
@@ -45,11 +46,18 @@ export interface LastSearch {
   results: FlightSummary[]
 }
 
+/** Phase 2 (D009): hotel results panel — separate field, LastSearch untouched. */
+export interface LastHotelSearch {
+  filters: HotelSearchFilters
+  results: HotelSummary[]
+}
+
 export interface StoreSnapshot {
   holds: Hold[]
   bookings: Booking[]
   constraints: Constraints
   lastSearch: LastSearch | null
+  lastHotelSearch: LastHotelSearch | null
 }
 
 function initialConstraints(): Constraints {
@@ -69,6 +77,7 @@ const bookings = new Map<string, Booking>()
 const expiredHolds = new Map<string, number>()
 let constraints: Constraints = initialConstraints()
 let lastSearch: LastSearch | null = null
+let lastHotelSearch: LastHotelSearch | null = null
 
 const listeners = new Set<() => void>()
 
@@ -122,6 +131,7 @@ export function getSnapshot(): StoreSnapshot {
     bookings: [...bookings.values()],
     constraints,
     lastSearch,
+    lastHotelSearch,
   }
 }
 
@@ -177,6 +187,11 @@ export function setLastSearch(search: LastSearch): void {
   notify()
 }
 
+export function setLastHotelSearch(search: LastHotelSearch): void {
+  lastHotelSearch = search
+  notify()
+}
+
 /** Test seam: reset to pristine state (constraints re-seeded from scenario). */
 export function resetForTests(): void {
   holds.clear()
@@ -184,6 +199,7 @@ export function resetForTests(): void {
   expiredHolds.clear()
   constraints = initialConstraints()
   lastSearch = null
+  lastHotelSearch = null
   nowFn = () => Date.now()
   notify()
 }
