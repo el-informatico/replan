@@ -1,5 +1,12 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+// The semantic tool's network seam is mocked so its widest output can be
+// budget-asserted without Convex (live behavior is the Phase-4 curl smoke).
+vi.mock('../lib/semantic-client.ts', () => ({
+  fetchSemanticHits: vi.fn(),
+}))
+
+import { fetchSemanticHits } from '../lib/semantic-client.ts'
 import { resetForTests } from '../state/store.ts'
 import { confirmBookingTool } from './confirm.ts'
 import { calculateTotalCostTool } from './cost.ts'
@@ -10,6 +17,7 @@ import { searchHotelsTool } from './hotels.ts'
 import { notifyContactTool } from './notify.ts'
 import { pingTool } from './ping.ts'
 import { searchFlightsTool } from './search.ts'
+import { searchFlightsSemanticTool } from './semantic-search.ts'
 import { generateItinerarySummaryTool } from './summary.ts'
 import { bookGroundTransportTool } from './transport.ts'
 
@@ -35,6 +43,7 @@ const TOOLS = [
   notifyContactTool,
   calculateTotalCostTool,
   generateItinerarySummaryTool,
+  searchFlightsSemanticTool,
 ]
 
 // Reviewer finding 9: this file executes state-mutating tools, so the
@@ -145,5 +154,32 @@ describe('tool authoring budgets', () => {
       JSON.stringify(summary).length,
       `generate_itinerary_summary output: ${JSON.stringify(summary).length} chars`,
     ).toBeLessThanOrEqual(1500)
+  })
+
+  it('search_flights_semantic output fits the 1.5K budget (widest case: 8 hydrated rows + notes)', async () => {
+    const mockFetch = vi.mocked(fetchSemanticHits)
+    mockFetch.mockReset()
+    mockFetch.mockResolvedValue({
+      ok: true,
+      hits: 8,
+      embed_ms: 120,
+      results: Array.from({ length: 8 }, (_, i) => ({
+        flight_id: `FL-${String(i + 1).padStart(3, '0')}`,
+        text: 'corpus text',
+        similarity_score: 0.9 - i * 0.05,
+      })),
+    })
+    const call = { signal: new AbortController().signal }
+    const semantic = await searchFlightsSemanticTool.execute(
+      { query: 'cheapest that lands early, short layover, red-eye fine' },
+      call,
+    )
+    expect(semantic['ok']).toBe(true)
+    expect((semantic['results'] as unknown[]).length).toBe(8)
+    expect(
+      JSON.stringify(semantic).length,
+      `search_flights_semantic output: ${JSON.stringify(semantic).length} chars`,
+    ).toBeLessThanOrEqual(1500)
+    mockFetch.mockRestore()
   })
 })

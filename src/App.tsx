@@ -11,6 +11,7 @@ import { registerHoldReservation } from './tools/hold.ts'
 import { registerNotifyContact } from './tools/notify.ts'
 import { registerPing } from './tools/ping.ts'
 import { registerSearchFlights } from './tools/search.ts'
+import { registerSearchFlightsSemantic } from './tools/semantic-search.ts'
 import { registerGenerateItinerarySummary } from './tools/summary.ts'
 import { registerBookGroundTransport } from './tools/transport.ts'
 import {
@@ -47,6 +48,7 @@ export default function App() {
       registerNotifyContact(),
       registerCalculateTotalCost(),
       registerGenerateItinerarySummary(),
+      registerSearchFlightsSemantic(),
     ]).then((all) => {
       if (!cancelled) setStatuses(all)
     })
@@ -268,10 +270,10 @@ export default function App() {
       </section>
 
       <p className="phase-note">
-        Phase 2: the full recovery flow is live — flight rebooking (Phase 1)
-        plus search_hotels, update_hotel_reservation, book_ground_transport,
-        notify_contact, calculate_total_cost, and generate_itinerary_summary.
-        Eleven tools in total (+ the Phase 0 ping smoke test).
+        Phase 4: semantic flight search joins the flow — the same rebooking
+        options, searchable in natural language via a live Convex vector
+        index (Gemini embeddings). Twelve tools in total (+ the Phase 0 ping
+        smoke test); everything else stays simulated.
       </p>
     </main>
   )
