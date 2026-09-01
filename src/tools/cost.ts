@@ -105,6 +105,12 @@ async function executeCost(input: Record<string, unknown>): Promise<Record<strin
     items: breakdown.items,
     total_usd: breakdown.total_usd,
     budget: breakdown.budget,
+    ...(breakdown.multiple_bookings_detected
+      ? {
+          multiple_bookings_detected: true,
+          superseded_flight_ids: breakdown.superseded_flight_ids,
+        }
+      : {}),
     note: 'Budget is the stored max-price constraint — update_constraints last set it (scenario default $650).',
   }
 }

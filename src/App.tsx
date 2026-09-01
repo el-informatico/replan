@@ -383,6 +383,12 @@ function TripTotalCard({ snap }: { snap: StoreSnapshot }) {
         Live via calculate_total_cost’s breakdown — budget is the stored
         max-price constraint (update_constraints).
       </p>
+      {breakdown.multiple_bookings_detected && (
+        <p className="muted">
+          Multiple flight bookings detected — the total uses the latest;
+          superseded: {breakdown.superseded_flight_ids!.join(', ')}.
+        </p>
+      )}
     </section>
   )
 }

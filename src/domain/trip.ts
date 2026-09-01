@@ -32,6 +32,14 @@ export interface CostBreakdown {
     /** total − max: positive = over by that much, negative = under. */
     delta_usd: number
   }
+  /**
+   * Present when more than one distinct flight is booked: the total uses
+   * only the latest booking, and hiding that would violate the same
+   * read-time honesty standard as stale_reason (audit B2). The fields are
+   * a STATE fact — they appear regardless of the requested kinds.
+   */
+  multiple_bookings_detected?: boolean
+  superseded_flight_ids?: string[]
 }
 
 /** Latest confirmed booking by confirmed_at (insertion order breaks ties). */
@@ -85,6 +93,15 @@ export function buildCostBreakdown(
 
   const total = round2(items.reduce((sum, i) => sum + i.cost_usd, 0))
   const max = snapshot.constraints.maxPriceUsd
+
+  // Audit B2: when several distinct flights are booked, the flight item
+  // above uses only the latest — surface the others instead of silently
+  // dropping them (same honesty standard as the receipt's stale_reason).
+  const latest = latestBookingOf(snapshot)
+  const superseded = latest
+    ? snapshot.bookings.filter((b) => b !== latest).map((b) => b.flightId)
+    : []
+
   return {
     items,
     total_usd: total,
@@ -93,6 +110,9 @@ export function buildCostBreakdown(
       within_budget: total <= max,
       delta_usd: round2(total - max),
     },
+    ...(superseded.length > 0
+      ? { multiple_bookings_detected: true, superseded_flight_ids: superseded }
+      : {}),
   }
 }
 

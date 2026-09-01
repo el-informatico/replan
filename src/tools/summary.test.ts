@@ -125,6 +125,9 @@ describe('generate_itinerary_summary — partial states (never an error)', () =>
     // of state); honesty about it lives in the receipt, not the sum.
     // FL-021 ($198) + hotel ($296) + the stale MIA taxi ($27.70).
     expect((r['cost'] as Record<string, unknown>)['total_usd']).toBe(521.7)
+    // Two bookings exist in this scenario — the receipt's cost carries the
+    // same honesty flag as the tool (audit B2, same read-time standard).
+    expect((r['cost'] as Record<string, unknown>)['multiple_bookings_detected']).toBe(true)
   })
 
   it('flags a hotel check-in that predates a later-confirmed arrival (reviewer finding 2)', async () => {

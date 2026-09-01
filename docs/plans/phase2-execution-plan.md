@@ -561,3 +561,16 @@ fixed in p2c10 with regression tests:
    labels); all six descriptions trimmed to ≤300 chars per §2
    prescription (a); T8 AC5's no-cross-validation pinned by test;
    multi-notification summary (count + last) pinned by test.
+
+6. **T9 contract amended — double-booking honesty (2026-08-31, p2c12,
+   closure-audit item B2).** AC1–AC4 unchanged in semantics: the total
+   still costs only the LATEST booking. The breakdown additionally
+   carries `multiple_bookings_detected: true` + `superseded_flight_ids:
+   [...]` whenever more than one distinct flight is booked — a STATE
+   fact, present regardless of the requested `items` — because silently
+   dropping an accidental second booking from the total violated the same
+   read-time honesty standard that amendment 4 applied to stale legs
+   (calculate_total_cost and generate_itinerary_summary inherit the flag
+   from the shared breakdown; the UI running-total card renders it).
+   Tests: single booking → fields absent; two bookings → flag +
+   superseded ids + total unchanged (latest only).

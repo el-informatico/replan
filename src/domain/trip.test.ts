@@ -56,6 +56,46 @@ describe('buildCostBreakdown (pure)', () => {
     expect(b.total_usd).toBe(356)
   })
 
+  it('flags superseded bookings without changing the total (audit B2)', () => {
+    const two = snapshot({
+      bookings: [
+        {
+          confirmationRef: 'RPLN-FL001',
+          flightId: 'FL-001',
+          confirmedAt: '2026-09-12T12:00:00.000Z',
+          itinerary: { price_usd: 400, flight: { route: 'LIM→MIA (1-stop)' } },
+        },
+        {
+          confirmationRef: 'RPLN-FL002',
+          flightId: 'FL-002',
+          confirmedAt: '2026-09-12T12:05:00.000Z',
+          itinerary: { price_usd: 356, flight: { route: 'LIM→MIA (nonstop)' } },
+        },
+      ],
+    })
+    const flagged = buildCostBreakdown(two)
+    expect(flagged.multiple_bookings_detected).toBe(true)
+    expect(flagged.superseded_flight_ids).toEqual(['FL-001'])
+    expect(flagged.total_usd).toBe(356) // unchanged — latest only, as contracted
+    // The flag is a STATE fact: present even when flight is not requested.
+    const hotelOnly = buildCostBreakdown(two, ['hotel'])
+    expect(hotelOnly.multiple_bookings_detected).toBe(true)
+
+    const one = snapshot({
+      bookings: [
+        {
+          confirmationRef: 'RPLN-FL001',
+          flightId: 'FL-001',
+          confirmedAt: '2026-09-12T12:00:00.000Z',
+          itinerary: { price_usd: 400, flight: { route: 'LIM→MIA (1-stop)' } },
+        },
+      ],
+    })
+    const unflagged = buildCostBreakdown(one)
+    expect(unflagged.multiple_bookings_detected).toBeUndefined()
+    expect(unflagged.superseded_flight_ids).toBeUndefined()
+  })
+
   it('composes flight + hotel + transport with one final rounding', () => {
     const snap = snapshot({
       bookings: [
