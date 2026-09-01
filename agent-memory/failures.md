@@ -62,3 +62,24 @@ Cost: one verify iteration; no wrong result reported (fail-fast worked).
    verification list names gets a test in the SAME increment that ships the
    code, not "later".
 Cost: one post-review fix iteration inside p1c8; caught before deploy.
+
+## F006 — (test-env) suite is not hermetic without .env.local (fresh-checkout gap; found in Phase 5, pre-existing)
+1. Root cause: src/lib/semantic-client.test.ts stubs global fetch but
+   still relies on the repo's gitignored .env.local providing
+   VITE_CONVEX_SITE_URL; with no env file the client fails before the
+   stub is reached, so 5 stubbed-path tests assert the wrong branch.
+   The p4c8 "client tests are now hermetic" claim held only with
+   .env.local present — p4c10's clean-build confirmation also ran with
+   it, so the gap escaped.
+   Evidence: worktree at 35abc5e (p5c1, docs-only) → 5 failures
+   (non-JSON body / errors-as-data ok:false / network rejection /
+   caller abort / 8s-timeout); identical 5 at 30c9daa (pre-Phase-5
+   baseline); all 229 pass in both trees once .env.local is copied in.
+2. Fix direction (NOT done — Phase 5 is demo-docs/tests only, and this
+   is src/): give the suite its own endpoint in a beforeAll
+   (setEndpointOverrideForTests or equivalent for import.meta.env) so
+   no repo env is required; then verify a no-env worktree runs green.
+   Implication until fixed: a fresh git clone (or CI without
+   .env.local) fails verify.sh's unit leg.
+Cost: none to product code; disclosed in p5c2 and left as an open item
+for the next verify-gated increment.

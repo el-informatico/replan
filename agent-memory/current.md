@@ -1,5 +1,62 @@
 # Current work
 
+## PHASE 5 (12-tool demo script + worksheet) — COMPLETE; the human run is
+## the only remaining step
+## 2026-09-01
+
+Everything docs/tests for the twelve-tool demo exists and is
+machine-pinned. Landed additive in two commits (p5c1: the script +
+worksheet pair; p5c2: the demo-script test extension + this memory
+update) — the eleven-tool script and the Phase 3 worksheet stay
+untouched as the verified historical record.
+
+- Canonical pair: docs/demo/twelve-tool-demo-script.md — 36 turns
+  (18 HUMAN + 18 AGENT), 12 tool calls, 5 gates (6–7, 12–13, 22–23,
+  26–27, 30–31) — and docs/verification/phase5-human-run-worksheet.md
+  (Phase 3's structure + a 12-row readOnlyHint table, a "why the
+  semantic turn is deliberately slow-walked" pre-run note, a P3 floor
+  re-check, a pacing tally, and a duration line in the outcome record).
+- The semantic moment: turns 15–18, call at T16, query "business class
+  with a bed" → FL-008 0.652 top / FL-004 0.616 eighth, count:8. Live
+  re-verified 2026-09-01 before pinning (raw response in progress.md's
+  Phase 5 entry; concordant with p4c6's recorded endpoints). Chosen
+  over the dawn query: the only Phase 4 example recorded concordantly
+  twice AND positively phrased (negation does not invert).
+- Pacing, satisfied structurally and machine-checked: the semantic call
+  is never adjacent to another tool call — three intervening turns each
+  side (nearest calls T12 before, T20 after), exactly one semantic call
+  in the script. demo-script.test.ts asserts the call-turn vector and
+  the ≥2-turn distance; both new docs carry the pacing table
+  (gate-table convention).
+- Duration: recomputed AND FLAGGED — ≈426 spoken words (the eleven-tool
+  script recounts to ≈373 under its own stated method; its published
+  ≈240 undercounted its document — disclosed, frozen file untouched) →
+  ≈2:50–3:33 + beats = over 2:45 in every scenario, over 3:00 at
+  deliberate pace. Levers in the script: paste/voice prompts, timed
+  rehearsal, jump-cut the five "Yes." turns, named optional trims
+  (≈5 s). Pinned values and pacing are explicitly not trimmable.
+- Tests: demo-script.test.ts "twelve-tool full narrative" describes
+  (structure + pacing + full 12-step walk against the real modules;
+  semantic seam mocked with the live-recorded hits). 22 files / 235
+  tests; verify.sh exit 0.
+- FINDING (pre-existing, NOT Phase 5): without .env.local a fresh
+  checkout fails 5 semantic-client tests — reproduced identically at
+  30c9daa and at p5c1; passes with .env.local present (see F006). Fix
+  as its own verify-gated increment (src/ change, out of Phase 5
+  scope).
+
+**REMAINING STEP — the human run** (Phase 5's only open item): follow
+the worksheet top-to-bottom (P0 12/12 registered; P1 Sol/Terra or
+Chrome 149+ flag; P2 fresh state; P3 dawn floor re-check expecting
+≈FL-021 ≈0.69, then wait ≥60 s before Turn 1), then record the outcome
+block verbatim and hand it back. Expect NO gate on
+search_flights_semantic (readOnlyHint: true — a gate there would
+CONTRADICT the annotation). The follow-up session records results in
+agent-memory/ and fixes any real discrepancy as a verify-gated
+increment.
+
+---
+
 ## PHASE 4 (semantic flight search via live Convex) — COMPLETE AND CLOSED
 ## 2026-09-01
 
@@ -43,6 +100,11 @@ Operational notes that matter next session:
    garbage phrasing → count 0 with rephrase note. Phrase queries
    POSITIVELY — negation does not invert ("I hate flying all night"
    returns red-eyes).
+   [Corrected 2026-09-01, p5c2: the 0.717 above is a record slip —
+   primary evidence (progress.md p4c6 + commit e620511) gives **0.694**
+   for the dawn query; 0.717 belongs to the different padded query
+   "  red-eye cheapest  " (p4c8 re-smoke). The business-class figures
+   were correct as written; Phase 5 pinned and re-verified that query.]
 3. Expect NO ChatGPT confirmation gate (readOnly precedent; single data
    point caveat).
 4. The page shows the tool via the Tool-call log card (storeless tool —

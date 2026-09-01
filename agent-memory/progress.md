@@ -350,3 +350,72 @@ Date: 2026-09-01 · Commits: ece718b (p4c8, review fixes) · review-fix redeploy
 Evidence: scripts/verify.sh -> PASS (exit 0); 22 files / 229 tests (+1
 file, +12 tests over the phase); verify.sh --url -> PASS (exit 0) on the
 final deploy; live curl outputs above. Phase 4 CLOSED.
+
+## Phase 5 — twelve-tool demo script + worksheet (docs/tests complete; human run open)
+Date: 2026-09-01. Commits: p5c1 `35abc5e` (docs pair), p5c2 (test
+extension + memory + F006).
+
+- docs/demo/twelve-tool-demo-script.md — ADDITIVE successor (eleven-tool
+  script + Phase 3 worksheet untouched). Turns 15–18 new: mood-based
+  gut-check ask → search_flights_semantic (T16) → decline → keep-it ack;
+  old 15–32 renumber 19–36; turn 2 says "twelve"; two narrations
+  tightened (T20, T36; disclosed). 36 turns (18H+18A), 12 calls, 5 gates
+  (6–7, 12–13, 22–23, 26–27, 30–31).
+- Query choice: "business class with a bed" — the only Phase 4 example
+  recorded concordantly twice (p4c6 entry + e620511: FL-008 0.652 top /
+  FL-004 0.616 tail) AND positively phrased. The dispatch's suggested
+  "arrived earlier without a brutal layover" was NOT used: never
+  live-tested + negation does not invert. Record slip fixed in
+  current.md: 0.717 belongs to "  red-eye cheapest  ", dawn is 0.694.
+- Live re-verification BEFORE pinning (2026-09-01, prod
+  resolute-malamute-859, POST /api/semantic-search, one paced call —
+  raw response recorded here per the evidence rule; this is the sole
+  source of the full-precision values pinned in demo-script.test.ts's
+  LIVE_BED_HITS):
+  {"query":"business class with a bed"} → ok:true, hits:8, embed_ms:199,
+  results in order: FL-008 0.6518698930740356 | FL-006 0.635246992111206
+  | FL-023 0.6276611685752869 | FL-003 0.6235493421554565 | FL-021
+  0.6214156746864319 | FL-022 0.6182296276092529 | FL-007
+  0.6174138188362122 | FL-004 0.6161682605743408 — reproduces p4c6's
+  rounded endpoints (0.652/0.616) and fills the middle order; all 8 ≥
+  0.60 floor → tool output count:8, note "Ranked by semantic similarity
+  (live index)." (3-decimal rounding verified: 0.6235493…→0.624).
+- Pacing (Phase 4's 429 finding): semantic call T16 never adjacent to
+  another tool call — 3 intervening turns each side (nearest calls T12 /
+  T20, distance 4), exactly one semantic call. Machine-checked: the
+  twelve-tool structure describe asserts call turns
+  [2,4,6,10,12,16,20,22,26,30,34,36], |Δ|≥2 from T16, non-call
+  neighbors, and the pacing table's presence. Both docs document it as
+  an explicit table (gate-table convention) + the worksheet carries a
+  "deliberately slow-walked" pre-run note and a pacing tally.
+- Duration recomputed + FLAGGED (not silently crept): eleven-tool
+  recounts to 373 spoken words under its own stated method — its
+  published ≈240 undercounted its document (disclosed; frozen file
+  untouched). Twelve-tool = 426 (H207/A219); +53 net (new turns +59,
+  tightenings −6). ≈2:50 @150wpm / ≈3:33 @120 + beats → over 2:45 in
+  every scenario, over 3:00 at deliberate pace. Levers in the script:
+  paste/voice prompts (hand-typing ≈207 words ≈ 6 min), timed
+  rehearsal, jump-cut the five "Yes." turns, optional trims ≈5 s.
+- Tests: demo-script.test.ts extended in place (eleven-tool + Phase-1
+  describes untouched) — twelve-tool structure (36/12/5, pacing,
+  live-value doc pins) + full 12-step walk with the semantic seam
+  mocked (vi.mock, hermetic). 22 files / 235 tests.
+- Independent pre-commit review (read-only subagent, 10 categories —
+  turn-mapping fidelity programmatically diffed, pinned values checked
+  script↔worksheet↔test↔flights.json, narration facts, duration
+  recount): 4 should-fix + 2 nits, ALL fixed pre-commit ("six Yes."→
+  five & 13 prompts; trim deltas −2/−7/−2 ≈5 s; worksheet commit-split
+  + test-count accuracy; live-response provenance recorded here;
+  pacing prose/assertion aligned on non-adjacency; turn blocks
+  truncated at tail sections to de-fragile the ungated-gate check).
+- Per-tree evidence: worktree run at p5c1 → 22 files / 229 tests PASS
+  (with .env.local present); WITHOUT .env.local, 5
+  src/lib/semantic-client.test.ts failures — reproduced identically at
+  30c9daa, so PRE-EXISTING (fresh-checkout gap, F006), not Phase 5.
+
+Evidence: scripts/verify.sh -> PASS (exit 0) at the final tree; npx
+vitest run -> 22 files / 235 tests (+6 over the phase); verify.sh --url
+https://replan-phi.vercel.app -> PASS (exit 0); fresh build emits
+assets/index-D6Pri8NM.js, identical to the served bundle; served bundle
+greps twelve registrations, one per tool. REMAINING: the human run per
+docs/verification/phase5-human-run-worksheet.md.
