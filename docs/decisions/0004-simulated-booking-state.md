@@ -43,3 +43,29 @@ on a timer firing; the UI's 1s interval is cosmetic countdown only).
   subscription point for the whole UI.
 - If a future phase needs cross-reload persistence, the swap is localized to
   the store module (hydrate on init, persist on mutation) — no tool changes.
+
+## Phase 2 addendum (2026-08-31) — hotels, transport, notifications
+
+Phase 2 extends this store additively (no existing field or signature
+changes); ledger D008/D009 in `agent-memory/decisions.md`, contracts in
+`docs/plans/phase2-execution-plan.md` §3.
+
+- `hotelReservations: Map<id, HotelReservation>` — **seeded** with
+  `scenario.original_hotel_reservation` from `hotels.json` (the original
+  trip's booking). No hold/TTL: a hold time-boxes a *decision*, and the
+  seeded reservation removes the decision point — the deliberate,
+  documented deviation from the flight hold/confirm pattern (the Phase-2
+  tool ceiling of 11 leaves no room for `hold_hotel`/`confirm_hotel`
+  tools; alternatives rejected in the plan's D008).
+- `transportBooking: TransportBooking | null` — singleton, seeded null
+  (ground transport was not pre-arranged on the original trip). Re-booking
+  **replaces** and returns `replaced_previous: true`: with no cancel tool,
+  an error would dead-end the agent; replacement preserves the
+  "one active ground leg" invariant the flight holds enforce by conflict.
+- `notifications: SentNotification[]` — append-only log of simulated
+  notifications (feeds `generate_itinerary_summary`).
+- `lastHotelSearch` — mirrors `lastSearch` as a separate field rather
+  than widening the existing `LastSearch` type (zero Phase-1 churn).
+
+All new time paths use the injectable clock (`now()`/`nowIso()`);
+`resetForTests()` re-seeds everything above; every mutation notifies.
