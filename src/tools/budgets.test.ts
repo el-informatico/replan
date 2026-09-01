@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { confirmBookingTool } from './confirm.ts'
+import { calculateTotalCostTool } from './cost.ts'
 import { updateConstraintsTool } from './constraints.ts'
 import { holdReservationTool } from './hold.ts'
 import { updateHotelReservationTool } from './hotel-reservation.ts'
@@ -30,6 +31,7 @@ const TOOLS = [
   updateHotelReservationTool,
   bookGroundTransportTool,
   notifyContactTool,
+  calculateTotalCostTool,
 ]
 
 describe('tool authoring budgets', () => {
@@ -109,6 +111,15 @@ describe('tool authoring budgets', () => {
     expect(
       JSON.stringify(notify).length,
       `notify_contact output: ${JSON.stringify(notify).length} chars`,
+    ).toBeLessThanOrEqual(1500)
+  })
+
+  it('calculate_total_cost output fits the 1.5K budget (fresh state)', async () => {
+    const call = { signal: new AbortController().signal }
+    const cost = await calculateTotalCostTool.execute({}, call)
+    expect(
+      JSON.stringify(cost).length,
+      `calculate_total_cost output: ${JSON.stringify(cost).length} chars`,
     ).toBeLessThanOrEqual(1500)
   })
 })

@@ -506,3 +506,12 @@ DONE ONLY WHEN: all AC have passing cited evidence and verify.sh exit 0.
    `readOnlyHint: true` (pure reads, `ping` precedent — they mutate
    nothing). T8's contract line "readOnlyHint:false" is superseded by
    this amendment; T9/T10 gain the explicit `true`.
+2. **T9 AC2's "empty state" premise vs D008 (2026-08-31, p2c6).** D008
+   seeds a hotel reservation at page load, so a *tool-level* empty state
+   (nothing booked) is unreachable — `resetForTests()` re-seeds it. AC2's
+   intent (no error when little/nothing is booked; a zero total is
+   representable) is honored by the reachable equivalents, both tested:
+   fresh-state default call → hotel-only breakdown (ok, $296), and an
+   explicit empty subset `items: []` → `{ok:true, items:[], total_usd:0}`.
+   The literal empty snapshot (total 0, within budget) is covered at the
+   domain layer (`buildCostBreakdown` on a structural empty snapshot).
