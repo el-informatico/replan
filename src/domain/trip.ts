@@ -111,8 +111,9 @@ export function bookedKinds(snapshot: StoreSnapshot): CostKind[] {
 // ---------------------------------------------------------------------------
 
 export interface ItinerarySummary {
-  status: 'complete' | 'partial'
-  missing: CostKind[]
+  status: 'complete' | 'partial' | 'needs_attention'
+  /** What is still unbooked, each naming the tool that books it (T10 AC3). */
+  missing: { kind: CostKind; book_via: string }[]
   flight:
     | {
         confirmation_ref: string
@@ -131,6 +132,8 @@ export interface ItinerarySummary {
     nights: number
     total_usd: number
     updated: boolean
+    /** Set when the entry no longer fits the CURRENT confirmed flight. */
+    stale_reason: string | null
   }[]
   transport:
     | {
@@ -140,6 +143,7 @@ export interface ItinerarySummary {
         to_zone: string
         pickup_time: string
         price_usd: number
+        stale_reason: string | null
       }
     | null
   notifications: {
@@ -149,9 +153,31 @@ export interface ItinerarySummary {
   cost: CostBreakdown
 }
 
+const BOOK_VIA: Record<CostKind, string> = {
+  flight: 'hold_reservation + confirm_booking',
+  hotel: 'update_hotel_reservation',
+  transport: 'book_ground_transport',
+}
+
+/** Arrival instant of a booking's flight, if present. */
+function arrivalOf(booking: StoreSnapshot['bookings'][number]): string | null {
+  const flight = booking.itinerary['flight'] as { arrive_iso?: string } | undefined
+  return flight?.arrive_iso ?? null
+}
+
+/** Destination airport of a booking (last segment's landing). */
+function destinationOf(booking: StoreSnapshot['bookings'][number]): string | null {
+  const segments = (booking.itinerary['flight'] as { segments?: { to: string }[] } | undefined)
+    ?.segments
+  return segments && segments.length > 0 ? segments[segments.length - 1]!.to : null
+}
+
 export function composeItinerary(snapshot: StoreSnapshot): ItinerarySummary {
   const booked = new Set(bookedKinds(snapshot))
-  const missing = COST_KINDS.filter((k) => !booked.has(k))
+  const missing = COST_KINDS.filter((k) => !booked.has(k)).map((kind) => ({
+    kind,
+    book_via: BOOK_VIA[kind],
+  }))
 
   const booking = latestBookingOf(snapshot)
   const flight = booking
@@ -170,8 +196,19 @@ export function composeItinerary(snapshot: StoreSnapshot): ItinerarySummary {
       })()
     : null
 
+  // Read-time honesty (reviewer finding 2): write-time validation can be
+  // superseded by a later flight re-confirmation. Cross-check every entry
+  // against the CURRENT booking and say so, instead of attesting a
+  // coherent trip that no longer is one.
+  const arrival = booking ? arrivalOf(booking) : null
+  const destination = booking ? destinationOf(booking) : null
+
   const hotels = snapshot.hotelReservations.map((res) => {
     const hotel = hotelById(loadHotelsDataset().hotels, res.hotelId)
+    const stale =
+      arrival !== null && res.checkInIso.slice(0, 10) < arrival.slice(0, 10)
+        ? `check-in ${res.checkInIso} precedes the confirmed flight's arrival (${arrival}) — shift it with update_hotel_reservation`
+        : null
     return {
       reservation_id: res.reservationId,
       hotel_name: hotel ? hotel.name : res.hotelId,
@@ -180,10 +217,21 @@ export function composeItinerary(snapshot: StoreSnapshot): ItinerarySummary {
       nights: res.nights,
       total_usd: res.totalUsd,
       updated: res.updatedAtIso !== null,
+      stale_reason: stale,
     }
   })
 
   const t = snapshot.transportBooking
+  let transportStale: string | null = null
+  if (t && arrival !== null) {
+    const pickupMs = Date.parse(t.pickupIso)
+    const arrivalMs = Date.parse(arrival)
+    if (destination !== null && t.fromAirport !== destination) {
+      transportStale = `booked from ${t.fromAirport} but the confirmed flight now arrives at ${destination} (${arrival}) — re-run book_ground_transport`
+    } else if (pickupMs < arrivalMs + 15 * 60_000 || pickupMs > arrivalMs + 8 * 3_600_000) {
+      transportStale = `pickup ${t.pickupIso} no longer fits the confirmed arrival (${arrival}) — re-run book_ground_transport`
+    }
+  }
   const transport = t
     ? {
         booking_ref: t.bookingRef,
@@ -192,13 +240,19 @@ export function composeItinerary(snapshot: StoreSnapshot): ItinerarySummary {
         to_zone: t.toZone,
         pickup_time: t.pickupIso,
         price_usd: t.priceUsd,
+        stale_reason: transportStale,
       }
     : null
+
+  const anyStale =
+    hotels.some((h) => h.stale_reason !== null) || transportStale !== null
 
   const last = snapshot.notifications.length > 0 ? snapshot.notifications.at(-1)! : null
 
   return {
-    status: missing.length === 0 ? 'complete' : 'partial',
+    // Stale dominates missing: a booked-but-now-wrong entry is more urgent
+    // than an unbought one; the receipt carries both lists either way.
+    status: anyStale ? 'needs_attention' : missing.length > 0 ? 'partial' : 'complete',
     missing,
     flight,
     hotels,

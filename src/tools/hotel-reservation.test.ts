@@ -40,6 +40,8 @@ describe('update_hotel_reservation — happy path', () => {
     expect(r['total_usd']).toBe(296)
     expect(r['updated_at']).toBe('2026-09-12T12:00:00.000Z')
     expect(r['idempotent']).toBeUndefined()
+    // Fixed-shape output — assert the 1.5K budget (reviewer finding 7).
+    expect(JSON.stringify(r).length).toBeLessThanOrEqual(1500)
   })
 
   it('mutates the store and notifies subscribers', async () => {
@@ -148,6 +150,28 @@ describe('update_hotel_reservation — state-dependent edges', () => {
       CALL,
     )
     expect(r['ok']).toBe(true)
+  })
+
+  it('idempotency does not mask a stored date a later flight invalidated (reviewer finding 2)', async () => {
+    // No flight yet: 09-11 is accepted (T6 AC5).
+    const early = await updateHotelReservationTool.execute(
+      { reservation_id: 'HTL-R001', new_check_in: '2026-09-11T15:00:00-04:00' },
+      CALL,
+    )
+    expect(early['ok']).toBe(true)
+    // Then a flight is confirmed landing 09-12T13:45-04:00...
+    const T0 = Date.parse('2026-09-12T12:00:00Z')
+    setClockForTests(() => T0)
+    await holdReservationTool.execute({ flight_id: 'FL-016' }, CALL)
+    await confirmBookingTool.execute({ flight_id: 'FL-016' }, CALL)
+    // ...and re-sending the SAME stored date must error, not return
+    // idempotent:true over stale state.
+    const resend = await updateHotelReservationTool.execute(
+      { reservation_id: 'HTL-R001', new_check_in: '2026-09-11T15:00:00-04:00' },
+      CALL,
+    )
+    expect(resend['ok']).toBe(false)
+    expect(resend['code']).toBe('CHECK_IN_BEFORE_ARRIVAL')
   })
 
   it('resetForTests restores the seeded reservation', async () => {

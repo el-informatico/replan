@@ -14,11 +14,11 @@ export const notifyContactTool: WebMcpTool = {
   name: 'notify_contact',
   title: 'Notify a contact (simulated)',
   description:
-    'Compose and "send" a heads-up about the new arrival to someone ' +
-    'meeting the traveler. Input: { contact, new_arrival_time }. contact: ' +
-    '{ name?, phone? | email?, relationship? } — at least one of phone or ' +
-    'email is required (phone → sms, else email). SIMULATED: nothing is ' +
-    'transmitted; the response shows exactly what would have been sent.',
+    'Compose a heads-up about the new arrival for someone meeting the ' +
+    'traveler. Input: { contact, new_arrival_time }. contact: ' +
+    '{ name?, phone? | email?, relationship? } — phone (sms) or email ' +
+    'required. SIMULATED: nothing is transmitted; the response shows what ' +
+    'would have been sent.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -86,11 +86,21 @@ async function executeNotify(input: Record<string, unknown>): Promise<Record<str
     email: undefined,
     relationship: undefined,
   }
+  // Caller-controlled strings are echoed into tool output — cap them so a
+  // huge value can never blow the 1.5K output budget (reviewer finding 8).
+  const MAX_CONTACT_FIELD = 100
   for (const key of ['name', 'phone', 'email', 'relationship'] as const) {
     const v = getOptionalString(contactRaw, key)
     if (!v.ok) return { ok: false, code: 'INVALID_INPUT', error: v.error }
     if (v.value === '') {
       return { ok: false, code: 'INVALID_INPUT', error: `contact.${key} must be a non-empty string.` }
+    }
+    if (v.value !== undefined && v.value.length > MAX_CONTACT_FIELD) {
+      return {
+        ok: false,
+        code: 'INVALID_INPUT',
+        error: `contact.${key} must be at most ${MAX_CONTACT_FIELD} characters (got ${v.value.length}).`,
+      }
     }
     fields[key] = v.value
   }

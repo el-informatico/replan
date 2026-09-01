@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildCostBreakdown, bookedKinds } from './trip.ts'
+import { buildCostBreakdown, bookedKinds, composeItinerary } from './trip.ts'
 import type { StoreSnapshot } from '../state/store.ts'
 
 /** Structural snapshot factory — pure-function tests, no store mutation. */
@@ -181,5 +181,23 @@ describe('bookedKinds (pure)', () => {
       ],
     })
     expect(bookedKinds(withHotel)).toEqual(['hotel'])
+  })
+})
+
+describe('composeItinerary (pure)', () => {
+  it('empty structural snapshot: partial, all three missing with book-via pointers, total 0 (reviewer finding 4)', () => {
+    const s = composeItinerary(snapshot())
+    expect(s.status).toBe('partial')
+    expect(s.missing).toEqual([
+      { kind: 'flight', book_via: 'hold_reservation + confirm_booking' },
+      { kind: 'hotel', book_via: 'update_hotel_reservation' },
+      { kind: 'transport', book_via: 'book_ground_transport' },
+    ])
+    expect(s.flight).toBeNull()
+    expect(s.hotels).toEqual([])
+    expect(s.transport).toBeNull()
+    expect(s.notifications).toEqual({ count: 0, last: null })
+    expect(s.cost.total_usd).toBe(0)
+    expect(s.cost.budget.within_budget).toBe(true)
   })
 })

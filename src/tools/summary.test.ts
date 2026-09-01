@@ -25,7 +25,10 @@ describe('generate_itinerary_summary — partial states (never an error)', () =>
     const r = await generateItinerarySummaryTool.execute({}, CALL)
     expect(r['ok']).toBe(true)
     expect(r['status']).toBe('partial')
-    expect(r['missing']).toEqual(['flight', 'transport'])
+    expect(r['missing']).toEqual([
+      { kind: 'flight', book_via: 'hold_reservation + confirm_booking' },
+      { kind: 'transport', book_via: 'book_ground_transport' },
+    ])
     expect(r['flight']).toBeNull()
     expect(r['hotels']).toEqual([
       {
@@ -36,6 +39,7 @@ describe('generate_itinerary_summary — partial states (never an error)', () =>
         nights: 2,
         total_usd: 296,
         updated: false,
+        stale_reason: null,
       },
     ])
     expect(r['transport']).toBeNull()
@@ -59,7 +63,7 @@ describe('generate_itinerary_summary — partial states (never an error)', () =>
     const r = await generateItinerarySummaryTool.execute({}, CALL)
     expect(r['ok']).toBe(true)
     expect(r['status']).toBe('partial')
-    expect(r['missing']).toEqual(['transport'])
+    expect(r['missing']).toEqual([{ kind: 'transport', book_via: 'book_ground_transport' }])
     const flight = r['flight'] as Record<string, unknown>
     expect(flight['confirmation_ref']).toBe('RPLN-FL016')
     expect(flight['route']).toBe('LIM→MIA (1-stop)')
@@ -89,8 +93,82 @@ describe('generate_itinerary_summary — partial states (never an error)', () =>
     const r = await generateItinerarySummaryTool.execute({}, CALL)
     expect(r['ok']).toBe(true)
     expect(r['status']).toBe('partial')
-    expect(r['missing']).toEqual(['flight'])
+    expect(r['missing']).toEqual([{ kind: 'flight', book_via: 'hold_reservation + confirm_booking' }])
     expect((r['transport'] as Record<string, unknown>)['booking_ref']).toBe('RPLN-GT-TAXI-MIA')
+  })
+
+  it('flags a stale transport leg when a later flight supersedes it (reviewer finding 2)', async () => {
+    let t = Date.parse('2026-09-12T12:00:00Z')
+    setClockForTests(() => t)
+    await holdReservationTool.execute({ flight_id: 'FL-016' }, CALL) // MIA
+    await confirmBookingTool.execute({ flight_id: 'FL-016' }, CALL)
+    t += 60_000
+    await bookGroundTransportTool.execute(
+      { type: 'taxi', pickup_time: '2026-09-12T14:05:00-04:00' },
+      CALL,
+    )
+    // The traveler switches to an FLL flight landing the next morning.
+    t += 3_600_000
+    await holdReservationTool.execute({ flight_id: 'FL-021' }, CALL)
+    await confirmBookingTool.execute({ flight_id: 'FL-021' }, CALL)
+
+    const r = await generateItinerarySummaryTool.execute({}, CALL)
+    expect(r['ok']).toBe(true)
+    // Nothing is missing — but the MIA leg no longer fits the FLL itinerary.
+    expect(r['status']).toBe('needs_attention')
+    expect(r['missing']).toEqual([])
+    const transport = r['transport'] as Record<string, unknown>
+    expect(transport['from_airport']).toBe('MIA')
+    expect(transport['stale_reason'] as string).toContain('FLL')
+    expect(transport['stale_reason'] as string).toContain('book_ground_transport')
+    // The cost total still reflects the leg currently in state (T9 = sum
+    // of state); honesty about it lives in the receipt, not the sum.
+    // FL-021 ($198) + hotel ($296) + the stale MIA taxi ($27.70).
+    expect((r['cost'] as Record<string, unknown>)['total_usd']).toBe(521.7)
+  })
+
+  it('flags a hotel check-in that predates a later-confirmed arrival (reviewer finding 2)', async () => {
+    // No flight yet: any date is accepted (T6 AC5)...
+    const early = await updateHotelReservationTool.execute(
+      { reservation_id: 'HTL-R001', new_check_in: '2026-09-11T15:00:00-04:00' },
+      CALL,
+    )
+    expect(early['ok']).toBe(true)
+    // ...then a flight lands on 09-12 and the receipt says so.
+    let t = Date.parse('2026-09-12T12:00:00Z')
+    setClockForTests(() => t)
+    await holdReservationTool.execute({ flight_id: 'FL-016' }, CALL)
+    await confirmBookingTool.execute({ flight_id: 'FL-016' }, CALL)
+
+    const r = await generateItinerarySummaryTool.execute({}, CALL)
+    expect(r['status']).toBe('needs_attention')
+    const hotel = (r['hotels'] as Record<string, unknown>[])[0]!
+    expect(hotel['stale_reason'] as string).toContain('arrival')
+    expect(hotel['stale_reason'] as string).toContain('update_hotel_reservation')
+  })
+
+  it('reports the LAST of several notifications with an exact count (reviewer finding 11)', async () => {
+    let t = Date.parse('2026-09-12T12:00:00Z')
+    setClockForTests(() => t)
+    await notifyContactTool.execute(
+      { contact: { phone: '+1 305 555 0100' }, new_arrival_time: '2026-09-12T13:45:00-04:00' },
+      CALL,
+    )
+    t += 60_000
+    await notifyContactTool.execute(
+      { contact: { email: 'cousin@example.com' }, new_arrival_time: '2026-09-12T13:45:00-04:00' },
+      CALL,
+    )
+    const r = await generateItinerarySummaryTool.execute({}, CALL)
+    expect(r['notifications']).toEqual({
+      count: 2,
+      last: {
+        id: 'NTF-002',
+        channel: 'email',
+        target: 'cousin@example.com',
+        sent_at: '2026-09-12T12:01:00.000Z',
+      },
+    })
   })
 })
 

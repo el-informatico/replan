@@ -21,11 +21,10 @@ export const updateHotelReservationTool: WebMcpTool = {
   name: 'update_hotel_reservation',
   title: 'Update hotel reservation dates',
   description:
-    'Shift the check-in date of the traveler’s existing hotel reservation ' +
-    '(the trip had one booked before the flight was cancelled). Input: ' +
-    '{ reservation_id, new_check_in }. Check-out moves to keep the same ' +
-    'number of nights; the price is unchanged. Re-sending the current ' +
-    'check-in is safe (idempotent). Compare areas with search_hotels first.',
+    'Shift the check-in of the traveler’s existing hotel reservation. ' +
+    'Input: { reservation_id, new_check_in }. Check-out moves to keep the ' +
+    'same nights; price unchanged. Must not precede the confirmed flight’s ' +
+    'arrival. Re-sending the current date is safe (idempotent).',
   inputSchema: {
     type: 'object',
     properties: {
@@ -116,13 +115,10 @@ async function executeUpdate(
     }
   }
 
-  // Deterministic idempotency: same instant (any offset spelling) → same
-  // stored result, updated_at untouched (confirm_booking convention).
-  if (Date.parse(newCheckIn.value) === Date.parse(existing.checkInIso)) {
-    return reservationResult(existing, true)
-  }
-
-  // Cross-tool validation (T6 AC5): only when a confirmed flight exists.
+  // Cross-tool validation (T6 AC5) runs BEFORE the idempotency check
+  // (reviewer finding 2): if a flight confirmed after the hotel was last
+  // set now invalidates the STORED date, re-sending that date must error
+  // and prompt a real update — not return idempotent:true over stale state.
   const booking = latestBooking()
   if (booking) {
     const flight = booking.itinerary['flight'] as { arrive_iso?: string } | undefined
@@ -134,6 +130,12 @@ async function executeUpdate(
         error: `New check-in ${newCheckIn.value} precedes the confirmed flight’s arrival (${arrival}). Check in on or after the arrival date.`,
       }
     }
+  }
+
+  // Deterministic idempotency: same instant (any offset spelling) → same
+  // stored result, updated_at untouched (confirm_booking convention).
+  if (Date.parse(newCheckIn.value) === Date.parse(existing.checkInIso)) {
+    return reservationResult(existing, true)
   }
 
   const updated: HotelReservation = {

@@ -13,11 +13,10 @@ export const calculateTotalCostTool: WebMcpTool = {
   name: 'calculate_total_cost',
   title: 'Trip running total',
   description:
-    'Running total across everything booked so far — flight, hotel, ground ' +
+    'Running total across everything booked — flight, hotel, ground ' +
     'transport — checked against the budget update_constraints last set. ' +
-    'Input: { items? } to total a subset (["flight","hotel","transport"]); ' +
-    'omit it for everything booked. Returns a per-item breakdown, the ' +
-    'total, and whether it fits the budget.',
+    'Input: { items? } for a subset; omit for everything booked. Returns a ' +
+    'per-item breakdown, the total, and budget fit.',
   inputSchema: {
     type: 'object',
     properties: {

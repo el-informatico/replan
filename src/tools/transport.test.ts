@@ -40,6 +40,9 @@ describe('book_ground_transport — happy path', () => {
     expect(r['est_travel_minutes']).toBe(25) // wait 5 + typical 20
     expect(r['est_dropoff_iso']).toBe('2026-09-12T18:30:00.000Z') // 14:05-04:00 + 25 min
     expect(r['replaced_previous']).toBeUndefined()
+    // Fixed-shape output, widest when it carries replaced_previous (reviewer
+    // finding 7) — assert the 1.5K budget here.
+    expect(JSON.stringify(r).length).toBeLessThanOrEqual(1500)
   })
 
   it('prices the long FLL→downtown leg from the same fare model', async () => {
@@ -130,6 +133,8 @@ describe('book_ground_transport — state-dependent edges', () => {
     expect(second['replaced_previous']).toBe('RPLN-GT-TAXI-MIA')
     expect(getTransportBooking()!.type).toBe('shuttle')
     expect(getTransportBooking()!.bookingRef).toBe('RPLN-GT-SHUTTLE-MIA')
+    // The replace-success shape is the widest this tool emits.
+    expect(JSON.stringify(second).length).toBeLessThanOrEqual(1500)
   })
 
   it('rejects an unknown vehicle type naming all three', async () => {

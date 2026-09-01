@@ -62,6 +62,9 @@ describe('calculate_total_cost — happy path', () => {
     ])
     expect(r['total_usd']).toBe(679.7)
     expect(r['budget']).toEqual({ max_price_usd: 650, within_budget: false, delta_usd: 29.7 })
+    // Full chain is the widest output this tool produces (reviewer
+    // finding 7) — assert the 1.5K budget where the fixture lives.
+    expect(JSON.stringify(r).length).toBeLessThanOrEqual(1500)
   })
 
   it('subset totals via items', async () => {

@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 
+import { resetForTests } from '../state/store.ts'
 import { confirmBookingTool } from './confirm.ts'
 import { calculateTotalCostTool } from './cost.ts'
 import { updateConstraintsTool } from './constraints.ts'
@@ -35,6 +36,13 @@ const TOOLS = [
   calculateTotalCostTool,
   generateItinerarySummaryTool,
 ]
+
+// Reviewer finding 9: this file executes state-mutating tools, so the
+// output-budget assertions must not depend on execution order — reset
+// between tests to keep every "(fresh state)" label true.
+beforeEach(() => {
+  resetForTests()
+})
 
 describe('tool authoring budgets', () => {
   it('every tool description is non-empty and ≤500 chars', () => {
@@ -85,16 +93,21 @@ describe('tool authoring budgets', () => {
     ).toBeLessThanOrEqual(1500)
   })
 
-  it('search_hotels output fits the 1.5K budget (windowed search is the widest case)', async () => {
+  it('search_hotels output fits the 1.5K budget (post-crunch window is the widest case — 8 windowed rows)', async () => {
     const call = { signal: new AbortController().signal }
+    // After the 09-12 sold-out crunch: 11 matches, 8 shown, every row
+    // carrying nights + total_stay_usd — the payload the reviewer measured
+    // at 1555 chars before the projection trim.
     const widest = await searchHotelsTool.execute(
       {
         city: 'Miami',
-        check_in: '2026-09-12T15:00:00-04:00',
-        check_out: '2026-09-14T15:00:00-04:00',
+        check_in: '2026-09-14T15:00:00-04:00',
+        check_out: '2026-09-16T15:00:00-04:00',
       },
       call,
     )
+    expect(widest['showing']).toBe(8)
+    expect(widest['count']).toBe(11)
     expect(
       JSON.stringify(widest).length,
       `search_hotels output: ${JSON.stringify(widest).length} chars`,
