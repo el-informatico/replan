@@ -99,3 +99,13 @@ Cross-cutting:
   modules in evals/functional/rebooking-narrative.test.ts (3 tests green).
   In-app-browser confirmation remains the human item (current.md).
 - No AI-attribution trailers in pushed history (re-verified post-push).
+
+Addendum (2026-08-31, later): the Phase 1 verification gap above is CLOSED —
+human-run in-app-browser smoke test (Path A, ChatGPT Desktop) PASSED with
+every turn matching the machine-pinned expectations exactly (17/FL-015 $299;
+FL-016 hold 15-min TTL; 17→14 with FLL promotion and live UI re-render;
+RPLN-FL016). One documented observation, not a defect: ChatGPT inserts a
+"proceed? / Yes" confirmation turn before both write-action tools
+(hold_reservation, confirm_booking) but not before ping / search_flights /
+update_constraints — demo-video planning must budget two extra Yes-turns.
+Full record: agent-memory/current.md ("Observed" + closed outcome block).
