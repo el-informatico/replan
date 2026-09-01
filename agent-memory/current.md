@@ -59,11 +59,13 @@ in-app-browser human pass is Phase 3's job (below).
 ## What Phase 3 (in-app-browser human verification of the six tools)
 ## should assume
 
-1. **Same pattern as Phase 1's close**: write an
-   evals/functional/demo-script-phase2.test.ts FIRST pinning exact tool
-   outputs (so site drift fails verify.sh), then the human demo script in
-   this file below the Phase 1 one, then run it in ChatGPT Desktop
-   (GPT-5.6 Sol/Terra) or Chrome 149+ with the webmcp-testing flag.
+1. **Same pattern as Phase 1's close — and the script + pinned test
+   ALREADY EXIST (p2c15, ahead of Phase 3)**: docs/demo/
+   eleven-tool-demo-script.md is the full-narrative script (32 turns,
+   11 tools, 5 gates) and demo-script.test.ts pins both its structure and
+   every output against the real modules. Phase 3 = run it in ChatGPT
+   Desktop (GPT-5.6 Sol/Terra) or Chrome 149+ with the webmcp-testing
+   flag, and record the outcome in this file.
 2. **Expect the confirmation gate** on ALL THREE transactional-ish tools
    (update_hotel_reservation, book_ground_transport, notify_contact) —
    budget a "Yes" turn for each; search/cost/summary should run direct
@@ -109,12 +111,18 @@ in-app-browser human pass is Phase 3's job (below).
 3. (Optional polish) Dynamic tool registration still deferred (D006) —
    11 static tools chosen for judge-facing predictability; the scored
    "WebMCP Leverage" opportunity remains if there's slack before Sep 3.
-4. **(= Phase 1 open item 5, carried, deliberately untouched)** demo
-   script turn-count vs observed confirmation gates — awaiting the
-   user's call (changes the video shot list); see "Observed" below.
-   Phase 2 ADDS: expect the gate on update_hotel_reservation,
-   book_ground_transport, and notify_contact too — budget three more
-   "Yes" turns in any Phase 3 script.
+4. **(= Phase 1 open item 5) CLOSED — 2026-08-31, p2c15.** The demo now
+   has a full eleven-tool script WITH the confirmation gates budgeted as
+   real turns: docs/demo/eleven-tool-demo-script.md — 32 conversational
+   turns (16 human + 16 agent), 11 tool calls, 5 gates marked
+   "[confirmation gate: human says yes]" (hold_reservation, confirm_booking,
+   update_hotel_reservation, book_ground_transport, notify_contact).
+   Machine-pinned by demo-script.test.ts: structure counts asserted
+   against the document itself + every scripted output executed against
+   the real modules. Measured duration ≈240 spoken words ≈ 1:36–2:00
+   plus UI beats → ≈2:00–2:45 wall-clock, inside the 3:00 Devpost limit.
+   The Phase 1 five-tool script below stays as the historical verified
+   record.
 5. evals/regression/ README still promises per-failure suites; Phase 1+2
    keep regressions as named tests in colocated suites (convention) —
    reconcile the README wording when convenient.
