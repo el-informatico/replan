@@ -64,7 +64,7 @@ four-hour layover.
 → `count:17`, cheapest `FL-015 $299` "Seventeen fit — cheapest $299,
 AV via San José."
 
-**TURN 5 — HUMAN:** Hold the Copa flight via Panama — FL-016, $356 —
+**TURN 5 — HUMAN:** Hold the Copa flight via Panama - FL-016, $356 -
 while I think it over.
 
 **TURN 6 — AGENT:** "I'll place a 15-minute hold on FL-016."
@@ -84,7 +84,7 @@ loud after answering, while filming.]
 **TURN 8 — AGENT:** `ttl_minutes:15`, `hold_expires_at` = call time +
 15 min. "Held until 2:15pm."
 
-**TURN 9 — HUMAN:** Change of plans — no layover over two hours, that's
+**TURN 9 — HUMAN:** Change of plans - no layover over two hours, that's
 firm. Update my constraints and show me what's left.
 
 **TURN 10 — AGENT:** **Tool call:**
@@ -92,7 +92,7 @@ firm. Update my constraints and show me what's left.
 lead ($198/$221/$267/$289), FL-015 gone, held FL-016 survives. "Fourteen
 now. FLL nonstops from $198 — Copa survives."
 
-**TURN 11 — HUMAN:** Keep it simple — book the held Copa flight, FL-016.
+**TURN 11 — HUMAN:** Keep it simple - book the held Copa flight, FL-016.
 
 **TURN 12 — AGENT:** "Confirming FL-016 at $356."
 **Tool call:** `confirm_booking({flight_id:"FL-016"})`
@@ -106,7 +106,7 @@ after answering.]
 **TURN 14 — AGENT:** `confirmation_ref:"RPLN-FL016"`. "Confirmed —
 RPLN-FL016, Miami 1:45pm."
 
-**TURN 15 — HUMAN:** Different question — search from scratch:
+**TURN 15 — HUMAN:** Different question - search from scratch:
 anything business class, with a bed?
 
 **TURN 16 — AGENT:** **Tool call:**
@@ -122,7 +122,7 @@ FL-004 0.6162→0.616 — concordant with p4c6's recorded 0.652-top /
 0.616-tail for the same query. The tool filters at the 0.60 floor; all
 8 hits cleared it.)*
 
-**TURN 17 — HUMAN:** Ha — no. $942 to land three hours later? The Copa
+**TURN 17 — HUMAN:** Ha - no. $942 to land three hours later? The Copa
 stands.
 
 **TURN 18 — AGENT:** "Kept. Now the room:"
@@ -135,7 +135,7 @@ actually available near Miami airport for tonight?
 → `count:6`, cheapest `HT-004 $89/night` "Six near MIA from $89 —
 Bayside's already walkable to the port."
 
-**TURN 21 — HUMAN:** Keep Bayside Inn — move my check-in to tonight,
+**TURN 21 — HUMAN:** Keep Bayside Inn - move my check-in to tonight,
 8pm.
 
 **TURN 22 — AGENT:** "Shifting check-in to 8pm."
@@ -150,7 +150,7 @@ first frame. Say the word cut after answering.]
 **TURN 24 — AGENT:** `check_out:"2026-09-14T20:00:00-04:00"`,
 `total_usd:296`. "Done — two nights, still $296."
 
-**TURN 25 — HUMAN:** Book me the shuttle from the airport — I land at
+**TURN 25 — HUMAN:** Book me the shuttle from the airport - I land at
 1:45, so make it 2:30.
 
 **TURN 26 — AGENT:** "Booking the 2:30 shuttle."
@@ -166,7 +166,7 @@ frame. Say the word cut after answering.]
 `price_usd:12.62`, `est_dropoff_iso:"2026-09-12T19:15:00.000Z"`. "Booked
 — $12.62, drop-off 3:15pm."
 
-**TURN 29 — HUMAN:** Text my sister María — new arrival 1:45pm Miami
+**TURN 29 — HUMAN:** Text my sister María - new arrival 1:45pm Miami
 time.
 
 **TURN 30 — AGENT:** "Sending it now."
@@ -187,7 +187,7 @@ first frame. Say the word cut after answering.]
 `total_usd:664.62`, `within_budget:false`, `delta_usd:14.62`. "All in:
 $664.62 — $14.62 over your $650 ceiling."
 
-**TURN 35 — HUMAN:** The cruise matters more than the ceiling — show me
+**TURN 35 — HUMAN:** The cruise matters more than the ceiling - show me
 the whole trip in one summary.
 
 **TURN 36 — AGENT:** **Tool call:** `generate_itinerary_summary()` →
