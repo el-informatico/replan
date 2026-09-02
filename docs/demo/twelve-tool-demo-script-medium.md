@@ -152,7 +152,7 @@ $296."
 `price_usd:12.62`, `est_dropoff_iso:"2026-09-12T19:15:00.000Z"`. "Booked —
 $12.62, about 45 minutes door to door, drop-off around 3:15pm."
 
-**TURN 29 — HUMAN:** Text my sister María - new arrival 1:45pm Miami
+**TURN 29 — HUMAN:** Text my sister Maria - new arrival 1:45pm Miami
 time.
 
 **TURN 30 — AGENT:** "I'll send her a heads-up."

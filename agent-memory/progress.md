@@ -537,3 +537,29 @@ Date: 2026-09-01 (before the human re-records).
 
 Evidence: scripts/verify.sh -> PASS (exit 0); npx vitest run -> 23
 files / 247 tests. Pre-recording state ready.
+
+## Phase 5 pre-recording fix 2 - accented-character paste corruption (p5c8)
+Date: 2026-09-01 (still before the human re-records).
+
+- Live finding: accented Latin characters corrupt on paste into
+  ChatGPT Desktop the same way smart dashes did - "María" rendered as
+  "Mar�a" on screen.
+- Broadened audit (ANY char outside 0x20-0x7E, not just the dash/quote
+  list; newlines excluded): across the three script docs' HUMAN turn
+  text and the worksheet's paste blockquotes, exactly ONE genuine
+  hit per file - í (U+00ED) in "María", turn 29's human line
+  (long:154, medium:155, short:169, worksheet:470). All other paste
+  targets are pure printable ASCII after p5c7.
+- Fix: María -> Maria (diacritic dropped) in those four lines ONLY.
+  The pinned agent-side call on turn 30 keeps name:"María" (pinned
+  tool-call JSON is never touched - verified post-edit); the
+  worksheet's turn-29 block gained a note that ChatGPT may echo the
+  ASCII spelling in the contact object it composes, which is a
+  spelling deviation to record, not a mismatch (the existing turn-30
+  deviation note already covered composed-contact differences).
+- Variants moved together as machine-required (human-text equality
+  across long/medium/short). Token counts unchanged - durations
+  remain 431 / 408 / 326.
+
+Evidence: scripts/verify.sh -> PASS (exit 0); npx vitest run -> 23
+files / 247 tests; the two demo test files -> 25/25.
