@@ -467,7 +467,14 @@ last segment; destination from the hotel zone.)
 
 ### TURN 29 — HUMAN
 **Say (verbatim):**
-> Text my sister María - new arrival 1:45pm Miami time.
+> Text my sister Maria - new arrival 1:45pm Miami time.
+
+(ASCII spelling: paste "Maria" without the diacritic — the accented í
+corrupts on paste into ChatGPT Desktop, live-observed rendering as
+"Mar�a", the same failure mode as the earlier dash issue. The pinned
+call on the next turn keeps "María"; if ChatGPT echoes the ASCII
+spelling in the contact object it composes, record that as a spelling
+deviation, not a mismatch.)
 
 ### TURN 30 — AGENT — tool 10/12 `notify_contact` — **GATE 5 of 5**
 **Script's agent line (indicative):** "I'll send her a heads-up."
