@@ -328,13 +328,19 @@ RPLN-FL016, the segment list, $356.
 
 ### TURN 15 — HUMAN — the semantic gut-check ask (pacing: this turn begins the ≥10 s buffer before turn 16 — type/read at natural pace, do not pre-type)
 **Say (verbatim):**
-> Before hotels — I've had a day. Was there a business class with a
-> bed on any of these?
+> Different question — search from scratch: anything business class,
+> with a bed?
 
-(This is the mood-based pivot: the trip is already rebooked; the
-traveler gut-checks a vibe question against the live index. The phrase
-**business class with a bed** is the exact query string pinned below —
-delivered verbatim, ChatGPT should pass it unchanged.)
+(LIVE-TESTING CORRECTION, p5c6: the original phrasing — "Was there a
+business class with a bed on any of these?" — anchored ChatGPT to the
+already-filtered on-screen results and search_flights_semantic never
+fired. This replacement is live-verified against the deployed site to
+trigger the tool; "search from scratch" is the steering phrase — keep
+it. The intent is unchanged: the trip is already rebooked and the
+traveler gut-checks a vibe question against the live index. ChatGPT
+composes the query from your ask; the pinned call below shows the
+canonical form — the live run surfaced FL-008 ($942) and FL-006 ($798)
+as the two clear top matches, consistent with the pinned order.)
 
 ### TURN 16 — AGENT — tool 6/12 `search_flights_semantic` — gate expected: NO — **the paced call**
 **Expected tool call:**

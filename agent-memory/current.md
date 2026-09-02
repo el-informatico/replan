@@ -76,6 +76,16 @@ untouched as the verified historical record.
   30c9daa and at p5c1; passes with .env.local present (see F006). Fix
   as its own verify-gated increment (src/ change, out of Phase 5
   scope).
+- LIVE-RUN CORRECTION (p5c6, during the human run's live testing):
+  Turn 15's original phrasing anchored ChatGPT to the on-screen
+  results and never triggered the semantic tool; replaced in all three
+  script docs with the live-verified "Different question — search from
+  scratch: anything business class, with a bed?" ("search from
+  scratch" is the load-bearing steering phrase). Long-script Turn 16
+  narration now names both top matches (FL-008 $942, FL-006 $798);
+  pinned values unchanged (the test already pinned FL-006 second at
+  0.635). Durations recomputed: long 431 / medium 408 / short 326.
+  Full disclosure in progress.md (p5c6 entry).
 - Recording variants + usage guide (p5c3/p5c4): docs/demo/
   twelve-tool-demo-script-medium.md (pasted prompts, the three named
   trims, instant gates; single take ≈2:21–3:30 — fits 3:00 only when

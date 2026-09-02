@@ -92,8 +92,8 @@ survives."
 **TURN 14 — AGENT:** `confirmation_ref:"RPLN-FL016"`. "Confirmed —
 RPLN-FL016, landing Miami 1:45pm today."
 
-**TURN 15 — HUMAN:** Before hotels — I've had a day. Was there a
-business class with a bed on any of these?
+**TURN 15 — HUMAN:** Different question — search from scratch:
+anything business class, with a bed?
 
 **TURN 16 — AGENT:** **Tool call:**
 `search_flights_semantic({query:"business class with a bed"})`
@@ -205,9 +205,12 @@ tightenings the long script already ships.)
 
 Words counted exactly as Phase 5 established (human turns in full +
 agent quoted narration; backticked tool-call syntax and JSON excluded):
-**415 words — 18 HUMAN turns = 207 (13 prompts + five "Yes."), 18
-AGENT turns = 208.** Same parser on the long script gives 426 — this
-variant saves 11 narration words.
+**408 words — 18 HUMAN turns = 200 (13 prompts + five "Yes."), 18
+AGENT turns = 208.** Same parser on the long script gives 431 — this
+variant saves 23 narration words (since the p5c6 live correction the
+long script's turn-16 narration names both top matches; this variant's
+stays condensed to the top match, which is still accurate — FL-008 is
+the dataset's only business cabin).
 
 Delivery model (assumptions stated; this is a single unedited take —
 no post-editing in this variant):

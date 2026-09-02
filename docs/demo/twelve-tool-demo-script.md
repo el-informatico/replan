@@ -1,7 +1,8 @@
 # Twelve-Tool Demo Script — full trip-recovery narrative
 
-- **Status: FINAL (pre-human-run)** — duration measured below (≈425 spoken
-  words, ≈2:50–3:33 at conversational pace — PAST the 2:45 comfort target
+- **Status: FINAL (pre-human-run; turn 15 live-corrected — see the deltas
+  note)** — duration measured below (≈431 spoken
+  words, ≈2:52–3:36 at conversational pace — PAST the 2:45 comfort target
   and past 3:00 at deliberate pace; explicitly flagged in the duration
   section, with the levers that bring a recorded edit back inside 3:00).
   Pacing notes at the bottom.
@@ -22,7 +23,12 @@
   new (the semantic gut-check), the old turns 15–32 are renumbered 19–36,
   turn 2 now says "twelve" (the site registers twelve tools), and three
   agent narrations were tightened to buy back duration (listed in the
-  duration section). Every other line is verbatim Phase 3.
+  duration section). Every other line is verbatim Phase 3. One later
+  LIVE-TESTING correction (p5c6, disclosed in progress.md): turn 15's
+  original phrasing anchored ChatGPT to the already-filtered on-screen
+  results and never triggered the semantic tool, so the line was
+  replaced with a live-verified alternative and turn 16's narration now
+  names both top matches (FL-008 and FL-006).
 
 Turn key: `HUMAN n` / `AGENT n` are conversational turns — **36 total**
 (18 human, 18 agent). `**Tool call:**` marks the 12 tool invocations.
@@ -86,15 +92,16 @@ held Copa flight survives the tighter rule."
 **TURN 14 — AGENT:** `confirmation_ref:"RPLN-FL016"`. "Confirmed —
 RPLN-FL016, landing Miami 1:45pm today."
 
-**TURN 15 — HUMAN:** Before hotels — I've had a day. Was there a
-business class with a bed on any of these?
+**TURN 15 — HUMAN:** Different question — search from scratch:
+anything business class, with a bed?
 
 **TURN 16 — AGENT:** **Tool call:**
 `search_flights_semantic({query:"business class with a bed"})`
 **[semantic pacing: ≥10 s from every other tool call — see pacing table]**
 → `{"ok":true,"count":8,"results":[{"id":"FL-008","airline":"LA","route":"LIM→MIA (nonstop)","departs":"2026-09-12T10:05:00-05:00","arrives":"2026-09-12T17:00:00-04:00","price_usd":942,"similarity_score":0.652},{"id":"FL-006",…0.635},{"id":"FL-023",…0.628},{"id":"FL-003",…0.624},{"id":"FL-021",…0.621},{"id":"FL-022",…0.618},{"id":"FL-007",…0.617},{"id":"FL-004",…0.616}],"note":"Ranked by semantic similarity (live index)."}`
-"One business seat on the board: LATAM nonstop, $942, similarity 0.65 —
-lands 5pm, three hours later than yours."
+"Two clear matches: the only true business seat — LATAM nonstop, $942,
+similarity 0.65 — and LATAM premium economy at $798. Both land after
+your Copa; the business seat at 5pm."
 
 *(Turn 16's scores are live evidence: 2026-09-01 curl of the prod
 endpoint, `hits:8`, `embed_ms:199`, top FL-008 0.6519→0.652, eighth
@@ -206,20 +213,21 @@ Words counted from the turn lines above (human turns in full + the
 agent's quoted narration; backticked tool-call syntax and JSON are shown
 on screen, not read aloud). Same method applied to both scripts:
 
-- **This script: ≈425 words** — 18 HUMAN turns ≈ 207 (13 prompts + five
-  "Yes."), 18 AGENT turns ≈ 219 (narration quotes only).
+- **This script: ≈431 words** — 18 HUMAN turns ≈ 200 (13 prompts + five
+  "Yes."), 18 AGENT turns ≈ 231 (narration quotes only; includes the
+  p5c6 turn-16 correction naming both top matches).
 - Recount of the eleven-tool script under its own stated method: **≈373
   words** (HUMAN 176 + AGENT 197) — its published "≈240 words" tally
   undercounts its own document, so its "2:00–2:45" range already
   presumed brisk delivery and light editing. Recorded here so this
   section's numbers are comparable, not laundered.
-- **Delta from adding the semantic moment: +53 words** (the four new
-  turns 15–18 contribute 59; three narrations were tightened at
+- **Delta from adding the semantic moment: +58 words** (the four new
+  turns 15–18 contribute 64; three narrations were tightened at
   authoring time, giving back 6 — turn 2, which also now says "twelve",
   −2; turn 20, −3; turn 36, −1; all indicative speech, no pinned value
   touched), plus one tool execution beat.
 
-Pace: ≈425 words → **≈2:50 at 150 wpm, ≈3:33 at a deliberate 120 wpm**
+Pace: ≈431 words → **≈2:52 at 150 wpm, ≈3:36 at a deliberate 120 wpm**
 — before beats. Beats: 12 tool executions (~1–2 s each once submitted;
 the semantic call measured 0.44–0.58 s end-to-end live in the Phase 4
 smoke), 5 confirmation-gate pauses (~2–3 s each), and the pacing buffer

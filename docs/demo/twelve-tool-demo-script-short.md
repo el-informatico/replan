@@ -106,8 +106,8 @@ after answering.]
 **TURN 14 — AGENT:** `confirmation_ref:"RPLN-FL016"`. "Confirmed —
 RPLN-FL016, Miami 1:45pm."
 
-**TURN 15 — HUMAN:** Before hotels — I've had a day. Was there a
-business class with a bed on any of these?
+**TURN 15 — HUMAN:** Different question — search from scratch:
+anything business class, with a bed?
 
 **TURN 16 — AGENT:** **Tool call:**
 `search_flights_semantic({query:"business class with a bed"})`
@@ -233,10 +233,10 @@ Turn 6's announce line is already minimal and stays as-is.)
 
 Words counted exactly as Phase 5 established (human turns in full +
 agent quoted narration; backticked tool-call syntax and JSON excluded):
-**recording-time 333 words — 18 HUMAN turns = 207 (13 prompts + five
+**recording-time 326 words — 18 HUMAN turns = 200 (13 prompts + five
 "Yes."), 18 AGENT turns = 126.** In the FINAL EDITED video the five
-"Yes." turns are cut, so the viewer reads ≈328 words of on-screen
-dialogue (202 human + 126 agent).
+"Yes." turns are cut, so the viewer reads ≈321 words of on-screen
+dialogue (195 human + 126 agent).
 
 Two numbers, both real:
 
