@@ -563,3 +563,55 @@ Date: 2026-09-01 (still before the human re-records).
 
 Evidence: scripts/verify.sh -> PASS (exit 0); npx vitest run -> 23
 files / 247 tests; the two demo test files -> 25/25.
+
+## Phase 5 — HUMAN VERIFICATION CLOSED (p5c9)
+Date: 2026-09-01.
+
+The human ran the full 36-turn twelve-tool script against
+https://replan-phi.vercel.app in ChatGPT Desktop's in-app browser,
+pasting the corrected all-ASCII lines from p5c7/p5c8. Two prior
+partial pastes were reviewed and merged into one complete, continuous
+run in the directing chat session; that merged outcome is what
+p5c9 records.
+
+Result: ALL 36 TURNS PASS, 0 failures. Every pinned value matched —
+T4 count 17 / FL-015 $299 first; T8 ttl 15; T10 count 14 with the FLL
+$198/$221/$267/$289 lead; T14 RPLN-FL016; T16 FL-008 top + FL-006
+second (count:8, note as pinned); T20 count 6 / HT-004 $89; T24
+shifted check-out, $296; T28 RPLN-GT-SHUTTLE-MIA $12.62; T32 NTF-001
+sms simulated; T34 $664.62 ($14.62 over); T36 complete, missing [].
+Pacing held: exactly one semantic call, no retry/error. P0 12/12
+registered.
+
+Two documented deviations (observations, not failures):
+1. T16 narrated-count variance — ChatGPT narrated 3 additional
+   on-topic results beyond the pinned top two (FL-003 $489, FL-004
+   $545 — ranks 4/8 of the pinned eight — and FL-018 $585, outside
+   it). Top-two ranking unaffected. Now a standing note in the
+   worksheet's strict-vs-indicative bullet: compare returned JSON
+   strictly, narration coverage loosely.
+2. T32 composed contact — name "Maria" (p5c8's predictable
+   consequence, cross-ref turn 29's note) and phone +51 952 634 781
+   vs the pinned example +51 987 654 321 (cross-ref turn 30's
+   composed-contact deviation note — anticipated class of difference).
+
+Gate doctrine updated from the two now-available inverse data points
+(Phase 3: gates on hold+confirm; Phase 5: zero gates on hold/
+update_constraints/confirm, gates on hotel/transport/notify; no gate
+on any readOnlyHint:true tool): gates cluster per session — record
+whatever pattern occurs; a mismatch vs a prior run is a data point,
+never a failure. Standing text replaced in the worksheet's
+"Why the confirmation-gate lines exist" section; gate + pacing tally
+tables and the outcome record are filled in full.
+
+Phase 5 CLOSED. The only remaining pre-submission steps are OUTSIDE
+this repo and not tracked as repo tasks: video editing (SHORT variant
+cut plan + 1.5x-speed/jump-cut pass), YouTube upload, Devpost form
+(text + narration drafted outside the repo), plus the Convex dashboard
+cleanup (optimistic-alligator-511, calm-mosquito-532). Nothing in the
+closure blocks further changes — a script correction found during
+editing is a normal future dispatch.
+
+Evidence: scripts/verify.sh -> PASS (exit 0); documentation-only
+commit (worksheet outcome record + standing notes + memory closeout;
+no script turn content, pinned values, or test files changed).
