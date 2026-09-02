@@ -507,3 +507,33 @@ Evidence: scripts/verify.sh -> PASS (exit 0); npx vitest run -> 23
 files / 247 tests (incl. demo-script-variants.test.ts cross-doc
 agreement with the new Turn 15 text). The human run continues with the
 corrected script.
+
+## Phase 5 pre-recording fix — paste-target lines made plain ASCII (p5c7)
+Date: 2026-09-01 (before the human re-records).
+
+- Risk addressed: typographic characters in the copy-paste sources could
+  corrupt on pasting into ChatGPT Desktop's input field.
+- Audit (literal grep -P '[\x{2014}\x{2013}\x{201C}\x{201D}\x{2018}
+  \x{2019}\x{2026}]' over both named files + the medium/short variants):
+  the ONLY smart character present in any paste target is the em dash
+  (—). All quotes/apostrophes were already straight ASCII; no ellipses
+  in human lines. Hit report (before changing anything): 10 in-text em
+  dashes per script doc (turns 5×2, 9, 11, 15, 17, 21, 25, 29, 35 —
+  the header dashes "TURN n — HUMAN" are structural and untouched);
+  worksheet: 9 "Say (verbatim)" blockquote lines + 1 line of the
+  optional Turn-0 orientation block (also a paste target — included on
+  the dispatch's stated rationale "aren't typed/pasted by the human",
+  which Turn 0 fails; judgment call disclosed here).
+- Change: — → " - " (spaced plain hyphen) in those lines ONLY. Pinned
+  tool-call JSON, agent narration, evidence notes, headers, tables,
+  and all other prose untouched (agent/pinned text is never pasted).
+- No numeric side effects: the swap is token-neutral under the
+  corrected counting method — totals re-verified 431 / 408 / 326
+  (as-cut ≈321), so no duration section changed.
+- Machine checks: demo-script-variants.test.ts cross-doc human-text
+  equality holds for the new ASCII lines (25/25 across the two demo
+  test files); structural TURN-header dashes preserved (the tests'
+  regexes match them).
+
+Evidence: scripts/verify.sh -> PASS (exit 0); npx vitest run -> 23
+files / 247 tests. Pre-recording state ready.
