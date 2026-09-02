@@ -15,8 +15,8 @@ tool calls, arguments, pinned outputs, turn order, or pacing.
 | Agent narration | as written (canonical) | the long script's three named trims applied | tightest natural form (17 further cuts) |
 | Gates (5) | live, natural pause | live, answered immediately | answered live, "Yes." turns removed in post |
 | Editing | none (rehearsal/live record) | none — single clean take | five gate cuts + inter-turn pass |
-| Dialogue words (corrected method) | 426 (the long doc prints "≈425" — same count, rounded) | 415 | 333 filmed / ≈328 as-cut |
-| Real duration estimate | ≈2:50–3:33 + beats — over the 2:45 comfort target in every scenario, over 3:00 at deliberate pace | single take ≈2:21–3:30 — under 3:00 only when brisk (best ≈39 s margin, worst ≈30 s over) | final edit ≈1:36–2:04 — under 3:00 by ≈56–84 s, under 2:30 by ≈26–54 s (full cut plan required) |
+| Dialogue words (corrected method) | 431 | 408 | 326 filmed / ≈321 as-cut |
+| Real duration estimate | ≈2:52–3:36 + beats — over the 2:45 comfort target in every scenario, over 3:00 at deliberate pace | single take ≈2:21–3:30 — under 3:00 only when brisk (best ≈39 s margin, worst ≈30 s over) | final edit ≈1:36–2:04 — under 3:00 by ≈56–84 s, under 2:30 by ≈26–54 s (full cut plan required) |
 | Use for | **the verification run** + rehearsal baseline | first choice for a single-take video IF a timed rehearsal lands under ≈2:50 | the safety-margin submission take |
 
 **LONG (live/unscripted).** The canonical script, machine-pinned against
@@ -26,6 +26,9 @@ thing to how a judge improvising from the page would actually discover
 and drive twelve WebMCP tools in natural language. It is also the one
 most likely to run past 3:00 — which is fine, because this variant's
 job is fidelity (verification and rehearsal), not the video clock.
+(Turn 15 was live-corrected — see the script's deltas note — after
+real-world testing showed the original phrasing never triggered the
+semantic tool.)
 
 **MEDIUM (paste).** Identical narrative with the long script's three
 named narration trims applied, every prompt pasted from the document,

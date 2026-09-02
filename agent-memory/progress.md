@@ -464,3 +464,46 @@ identical across all three docs; totals long 426 (207H+219A), medium
 415 (207H+208A), short 333 (207H+126A). Mutation runs: M1/M2/M5b and
 controls M3/M4 all FAIL (caught). Phase 5's remaining step is
 unchanged: the human run, per the worksheet, using the LONG script.
+
+## Phase 5 live-run correction — Turn 15 phrasing replaced (p5c6)
+Date: 2026-09-01 (during the human run's live testing).
+
+- **Finding (live human-run test):** Turn 15's original human line —
+  "Before hotels — I've had a day. Was there a business class with a
+  bed on any of these?" — FAILED live: the phrase "on any of these"
+  anchored ChatGPT to the already-filtered on-screen results, so it
+  answered from context and search_flights_semantic was NEVER CALLED.
+  A script-text defect, not a site defect.
+- **Fix (live-verified replacement):** "Different question — search
+  from scratch: anything business class, with a bed?" — confirmed
+  against the deployed site to trigger search_flights_semantic; the
+  live run surfaced FL-008 ($942) and FL-006 ($798) as the two clear
+  top matches, consistent with the already-pinned FL-008/0.652-top
+  order (FL-006 pinned second at 0.635 all along).
+- **Scope of the edit (disclosed, not silent):** Turn 15 replaced in
+  ALL THREE script docs (long/medium/short — the variants drift guard
+  machine-enforces identical human text, so they move together); long
+  script Turn 16 narration rewritten to name BOTH matches ("Two clear
+  matches: the only true business seat — LATAM nonstop, $942,
+  similarity 0.65 — and LATAM premium economy at $798…"); worksheet
+  Turn 15 block carries the correction note and the steering-phrase
+  guidance ("search from scratch" is load-bearing); usage-guide table
+  updated. Medium/short Turn 16 narrations intentionally keep the
+  condensed top-match form (still accurate — FL-008 is the only
+  business cabin; monotonicity long 31 ≥ medium 19 ≥ short 14 holds).
+- **Tests: NO assertion changes needed.** demo-script.test.ts already
+  pinned FL-006 as the second row (LIVE_BED_HITS fixture, doc-pin
+  table, and the module-walk order/score arrays) — the dispatch's
+  "adjust if it only asserts a single top result" did not apply. No
+  test pins human-turn or narration text, so no test edit was required
+  for the phrasing change; the variants consistency suite verified the
+  cross-doc propagation.
+- **Durations recomputed (corrected method):** long 431 (200H+231A) —
+  ≈2:52 @150/≈3:36 @120; medium 408 (200H+208A); short 326 (200H+126A),
+  as-cut ≈321 (195+126). New-turns block now 64 words; delta vs the
+  eleven-tool recount (373) = +58.
+
+Evidence: scripts/verify.sh -> PASS (exit 0); npx vitest run -> 23
+files / 247 tests (incl. demo-script-variants.test.ts cross-doc
+agreement with the new Turn 15 text). The human run continues with the
+corrected script.
