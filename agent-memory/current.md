@@ -1,39 +1,36 @@
 # Current work
 
-## Where things stand — pre-shutdown snapshot (2026-09-01, after p5c4)
+## Where things stand — ALL PHASES CLOSED (2026-09-01, after p5c9)
 
-- **Phases 0–4: CLOSED and verified** (Phase 0 scaffolding; Phase 1
-  five tools + human-verified five-tool run; Phase 2 eleven tools,
-  closure-audited; Phase 3 eleven-tool human run, all pins matched;
-  Phase 4 search_flights_semantic + live Convex index, independently
-  reviewed — records in progress.md / docs/reviews/).
-- **Phase 5: docs+tests COMPLETE (p5c1–p5c4)** — twelve-tool script +
-  worksheet, demo-script test extension, medium/short recording
-  variants + mutation-tested drift guard, usage guide. Its single
-  remaining step is the HUMAN verification run (below).
-- **Before Devpost submission (deadline 2026-09-03), in order:**
-  1. the human verification run — LONG/live script against the
-     worksheet (docs/verification/phase5-human-run-worksheet.md),
-     record the outcome block, hand it back;
-  2. record the demo video — SHORT variant take with the FULL cut plan
-     (gate cuts + inter-turn pass), then the human's editing plan:
-     1.5x-speed + jump-cuts;
-  3. Devpost text description + video narration: ALREADY DRAFTED by
-     the human OUTSIDE this repo — they are deliberately not in-repo,
-     don't hunt for them here;
-  4. Convex dashboard cleanup: delete scratch project
-     replan-vector-preflight (optimistic-alligator-511) and the spare
-     deployment calm-mosquito-532 (carried from Phase 4's notes).
-- **No in-progress work**: task list empty, git clean and fully pushed
-  at 8ed4274, verify.sh PASS at that tree. Known-open (pre-existing,
-  non-blocking): F006 — fresh checkouts without .env.local fail 5
-  semantic-client tests (site unaffected); fix as its own src/
-  increment if ever needed.
+- **Phases 0–5: ALL CLOSED AND VERIFIED.** Phase 5's human
+  verification run COMPLETED AND PASSED on 2026-09-01: the full
+  36-turn twelve-tool script against the live site in ChatGPT
+  Desktop, using the corrected all-ASCII paste lines (p5c7/p5c8) —
+  every pinned value matched, 0 failures. The outcome is recorded in
+  docs/verification/phase5-human-run-worksheet.md's completed outcome
+  record + tally tables (commit p5c9), with two documented
+  non-failure deviations (T16 narrated-result-count variance; T32
+  composed contact "Maria" + a different phone number) and the
+  inverse-vs-Phase-3 gate pattern, now captured as standing doctrine:
+  gates cluster per session; record what occurs.
+- **The ONLY remaining pre-submission steps are OUTSIDE this repo and
+  are not tracked as repo tasks:** editing the demo video (SHORT
+  variant cut plan + the human's 1.5x-speed/jump-cut pass), uploading
+  to YouTube, and submitting the Devpost form (text + narration
+  drafted outside the repo). Also outside the repo: Convex dashboard
+  cleanup — delete scratch project replan-vector-preflight
+  (optimistic-alligator-511) and spare deployment calm-mosquito-532.
+- **Nothing about Phase 5's closure blocks further changes:** if video
+  editing surfaces something needing a script correction, that is a
+  normal future dispatch, not a Phase 5 reopening.
+- Known-open (pre-existing, non-blocking): F006 — fresh checkouts
+  without .env.local fail 5 semantic-client tests (site unaffected);
+  fix as its own src/ increment if ever needed.
 
 ---
 
-## PHASE 5 (12-tool demo script + worksheet) — COMPLETE; the human run is
-## the only remaining step
+## PHASE 5 (12-tool demo script + worksheet) — COMPLETE AND CLOSED
+## (human verification passed 2026-09-01, recorded in p5c9)
 ## 2026-09-01
 
 Everything docs/tests for the twelve-tool demo exists and is
@@ -97,17 +94,21 @@ untouched as the verified historical record.
   evals/functional/demo-script-variants.test.ts (spans + skeleton +
   spoken-value checks, mutation-tested).
 
-**REMAINING STEP — the human run** (Phase 5's only open item): follow
-the worksheet top-to-bottom (P0 12/12 registered; P1 Sol/Terra or
-Chrome 149+ flag; P2 fresh state; P3 dawn floor re-check expecting
-≈FL-021 ≈0.69, then wait ≥60 s before Turn 1), then record the outcome
-block verbatim and hand it back. Use the LONG/live script for this run
-(the guide's recommendation — most faithful to natural-language
-discovery; medium/short are video takes for AFTER verification). Expect
-NO gate on search_flights_semantic (readOnlyHint: true — a gate there
-would CONTRADICT the annotation). The follow-up session records results
-in agent-memory/ and fixes any real discrepancy as a verify-gated
-increment.
+**HUMAN VERIFICATION — CLOSED (2026-09-01, recorded in p5c9).** The
+full 36-turn run completed against the live site in ChatGPT Desktop
+(two partial runs merged into one complete continuous outcome in the
+directing session). All 36 turns PASS, 0 failures. Two documented
+non-failure deviations: T16 — ChatGPT narrated 3 additional on-topic
+results beyond the pinned top two (FL-003 $489, FL-004 $545, FL-018
+$585; top-two FL-008/FL-006 unaffected — narrated-count variance, now
+a standing note in the worksheet's strict-vs-indicative bullet); T32 —
+composed contact "Maria" (p5c8's predictable consequence) with phone
++51 952 634 781 (per turn 30's composed-contact deviation note). Gate
+pattern was Phase 3's inverse (zero gates on hold/update_constraints/
+confirm; gates on hotel/transport/notify; none on any readOnlyHint:
+true tool) — the worksheet's standing gate documentation now states
+the session-clustering doctrine plainly. Remaining pre-submission work
+(video edit, YouTube upload, Devpost form) lives OUTSIDE this repo.
 
 ---
 

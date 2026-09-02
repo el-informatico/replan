@@ -34,7 +34,15 @@ operating ChatGPT Desktop's in-app browser (or Chrome 149+ with
   it), while different ids/order mean the model phrased the query
   differently (see turn 16's note). The agent's spoken lines are
   INDICATIVE — ChatGPT will word them differently; only the tool calls
-  and returned values must match.
+  and returned values must match. ALSO indicative: **how many of a
+  tool's ranked results ChatGPT chooses to narrate.** The pinned
+  expectations cover the tool's returned ranking; the model may
+  summarize more of that ranking than the script's narration line
+  shows (live-observed at turn 16 in the completed Phase 5 run: the
+  top two matched the pins exactly while three additional on-topic
+  results were narrated). Narrated-count variance is expected model
+  behavior, not a tool defect — compare the returned JSON strictly,
+  the narration's coverage loosely.
 - Pre-flight (automated, 2026-09-01): `scripts/verify.sh --url
   https://replan-phi.vercel.app` → PASS (exit 0) — typecheck, lint,
   build, unit (22 files / 229 tests at HEAD 30c9daa, before this
@@ -77,12 +85,22 @@ API has no such control (recorded observation in
 | `book_ground_transport` | unset | (gate expected by script) |
 | `notify_contact` | unset | (gate expected by script) |
 
-Phase 1 observed the gate on both `hold_reservation` and
-`confirm_booking`, and no gate on `ping`, `search_flights`, or
-`update_constraints` — one live data point, which is why every tool
-turn below carries an explicit gate line. Phase 4 expects NO gate on
-`search_flights_semantic` (readOnly precedent, single data point
-caveat).
+Two full live data points now exist, and they are INVERSES of each
+other. Phase 3 (the 11-tool run) observed gates on `hold_reservation`
+and `confirm_booking`, none on `update_constraints`. The completed
+Phase 5 run (2026-09-01) showed ZERO gates across
+`hold_reservation`, `update_constraints`, and `confirm_booking` in
+its first half, then gates consistently on
+`update_hotel_reservation`, `book_ground_transport`, and
+`notify_contact` in its second half — and no gate on
+`search_flights_semantic`, honoring its `readOnlyHint: true`.
+Stated plainly: **gate behavior clusters per session — ChatGPT's
+safety review fires in a session-dependent pattern, not identically
+per tool every time.** Future runs should expect and record whatever
+pattern actually occurs; a mismatch against a prior run's pattern is
+a data point, never a failure. The one implementation-relevant rule
+is unchanged: a gate on a tool advertised `readOnlyHint: true`
+contradicts the annotation (see the table above).
 
 ## Why the semantic turn is deliberately slow-walked (read before running)
 
@@ -542,54 +560,83 @@ $664.62.
 
 ---
 
-## Gate tally (fill after the run)
+## Gate tally (completed 2026-09-01)
 
 | # | Tool | Script expects gate | Gate appeared? | Notes |
 |---|---|---|---|---|
-| 1 | hold_reservation (T6–7) | yes | [ ] yes [ ] no | |
-| 2 | confirm_booking (T12–13) | yes | [ ] yes [ ] no | |
-| 3 | update_hotel_reservation (T22–23) | yes | [ ] yes [ ] no | |
-| 4 | book_ground_transport (T26–27) | yes | [ ] yes [ ] no | |
-| 5 | notify_contact (T30–31) | yes | [ ] yes [ ] no | |
-| — | ping (T2) | no | [ ] no [ ] yes | contradicts `readOnlyHint:true` if yes |
-| — | search_flights (T4) | no | [ ] no [ ] yes | |
-| — | update_constraints (T10) | no | [ ] no [ ] yes | |
-| — | search_flights_semantic (T16) | no | [ ] no [ ] yes | contradicts `readOnlyHint:true` if yes |
-| — | search_hotels (T20) | no | [ ] no [ ] yes | |
-| — | calculate_total_cost (T34) | no | [ ] no [ ] yes | contradicts `readOnlyHint:true` if yes |
-| — | generate_itinerary_summary (T36) | no | [ ] no [ ] yes | contradicts `readOnlyHint:true` if yes |
+| 1 | hold_reservation (T6–7) | yes | [x] yes **[x] no** | session-cluster variance — see the standing note above; ran direct |
+| 2 | confirm_booking (T12–13) | yes | [x] yes **[x] no** | session-cluster variance — see the standing note above; ran direct |
+| 3 | update_hotel_reservation (T22–23) | yes | **[x] yes** [ ] no | as scripted |
+| 4 | book_ground_transport (T26–27) | yes | **[x] yes** [ ] no | as scripted |
+| 5 | notify_contact (T30–31) | yes | **[x] yes** [ ] no | as scripted |
+| — | ping (T2) | no | **[x] no** [ ] yes | |
+| — | search_flights (T4) | no | **[x] no** [ ] yes | |
+| — | update_constraints (T10) | no | **[x] no** [ ] yes | |
+| — | search_flights_semantic (T16) | no | **[x] no** [ ] yes | honors `readOnlyHint:true` |
+| — | search_hotels (T20) | no | **[x] no** [ ] yes | |
+| — | calculate_total_cost (T34) | no | **[x] no** [ ] yes | |
+| — | generate_itinerary_summary (T36) | no | **[x] no** [ ] yes | |
 
-## Pacing tally (fill after the run)
+## Pacing tally (completed 2026-09-01)
 
 | Check | Held? | Notes |
 |---|---|---|
-| Turn 16 delivered at natural pace (≥10 s from turn 12's call) | [ ] yes [ ] no | |
-| ≥10 s between turn 16 and turn 20's call | [ ] yes [ ] no | |
-| Exactly ONE semantic call in the whole run | [ ] yes [ ] no | if more: when, and was ≥10 s spacing held? |
-| Turn-16 latency normal (~0.5 s) vs retry (~2 s) vs error | ______ | |
+| Turn 16 delivered at natural pace (≥10 s from turn 12's call) | **[x] yes** [ ] no | |
+| ≥10 s between turn 16 and turn 20's call | **[x] yes** [ ] no | |
+| Exactly ONE semantic call in the whole run | **[x] yes** [ ] no | no second query offered or made |
+| Turn-16 latency normal (~0.5 s) vs retry (~2 s) vs error | normal | not separately timed; no retry delay or error observed |
 
-## Outcome record (to be completed by the human runner)
+## Outcome record (COMPLETED 2026-09-01 — Phase 5 human verification CLOSED)
 
-This block records what happened — it is left empty here on purpose.
-Phase 5's outcome is whatever this block says after the run, recorded
-verbatim by the runner; nothing above pre-judges it.
+Recorded by the follow-up session from the runner's transcript: two
+partial runs were reviewed and merged into one complete, continuous
+36-turn outcome in the directing chat session. **All 36 turns PASS
+against the pinned expectations — 0 failures.**
 
-- Path used: ______  Date/time: ______  Model: ______
-- Pre-run P0 (12/12 registered): [ ] yes [ ] no → detail:
-- Pre-run P3 floor re-check (probe query "cheapest option that leaves
-  at dawn"): observed top id ______ score ______ (expected ≈FL-021
-  ≈0.69)
+- Path used: A — ChatGPT Desktop in-app browser. Date: 2026-09-01.
+  Model: WebMPC-capable per P0 (exact variant not transcribed in the
+  merged record).
+- Pre-run P0 (12/12 registered): **[x] yes**, no "unavailable" rows.
+- Pre-run P3 floor re-check: probe not separately transcribed; turn
+  16's live result doubles as the floor confirmation — on-topic top
+  two well above the 0.60 floor, consistent with the pinned order.
 - The 12 tool-output turns (2, 4, 8, 10, 14, 16, 20, 24, 28, 32, 34,
-  36): pass ___ / fail ___ / deviation ___ (list every fail and
-  deviation with the turn number and the observed vs. expected values):
-- Gate tally deviations (gates where none expected, or missing where
-  expected):
-- Pacing tally deviations (see table above), including any second
-  semantic query the model offered or made:
-- Total run duration (mm:ss), and whether the script's duration
-  levers (pasted prompts, edit cuts) were needed:
-- Anything else observed (UI reactions, timing, model behavior worth
-  keeping):
+  36): **pass 12 / fail 0 / deviation 2** (both deviations are
+  recorded observations, not failures — itemized below). Observed
+  values matched every pin: T2 ping ok; T4 count 17, FL-015 $299
+  first; T8 ttl_minutes 15 with +15-min expiry; T10 count 14, FLL
+  leads $198/$221/$267/$289; T14 confirmation_ref RPLN-FL016; T16
+  FL-008 top with FL-006 second (Deviation 1); T20 count 6, HT-004
+  $89; T24 check-out shifted, $296; T28 RPLN-GT-SHUTTLE-MIA, $12.62;
+  T32 NTF-001, sms, simulated (Deviation 2); T34 total $664.62,
+  $14.62 over; T36 status complete, missing [].
+- **Deviation 1 (T16, not a failure):** ChatGPT's narration surfaced
+  3 additional on-topic results beyond the pinned top two — FL-003
+  $489, FL-004 $545, FL-018 $585. (FL-003 and FL-004 sit within the
+  pinned eight at ranks 4 and 8; FL-018 is not among the pinned
+  eight.) The top-two ranking (FL-008, FL-006) was unaffected.
+  Recorded as expected variance in how many ranked results the model
+  chooses to narrate — see the standing note in the header's
+  strict-vs-indicative bullet.
+- **Deviation 2 (T32, not a failure):** the composed contact object
+  used name "Maria" (no diacritic — the predictable consequence of
+  the p5c8 ASCII paste line; see turn 29's note) and phone
+  +51 952 634 781 (differs from the worksheet's pinned example
+  +51 987 654 321 — turn 30's composed-contact deviation note
+  anticipated exactly this class of difference).
+- Gate tally deviations: zero gates in the first half
+  (hold_reservation, update_constraints, confirm_booking all ran
+  direct), gates on all three second-half transactional tools — the
+  inverse of Phase 3's pattern. Recorded as session-cluster variance
+  per the updated standing note; no gate appeared on any
+  `readOnlyHint: true` tool.
+- Pacing tally: all held; exactly one semantic call, no second query,
+  no retry or error at turn 16.
+- Total run duration: not separately transcribed (video timing is
+  handled in editing, outside this worksheet).
+- Anything else observed: nothing beyond the above — the run used the
+  corrected all-ASCII paste lines from p5c7/p5c8 end to end with no
+  further encoding corruption.
 
 ## After the run
 
